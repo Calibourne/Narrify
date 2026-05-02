@@ -4,10 +4,15 @@ import { join } from 'path'
 import { POST } from '@/app/api/parse/route'
 import { NextRequest } from 'next/server'
 
-function makeRequest(file: File | null, fieldName = 'file'): NextRequest {
-  const formData = new FormData()
-  if (file) formData.append(fieldName, file)
-  return new NextRequest('http://localhost/api/parse', { method: 'POST', body: formData })
+function makeRequest(file: File | null): NextRequest {
+  if (!file) {
+    return new NextRequest('http://localhost/api/parse', { method: 'POST', body: '' })
+  }
+  return new NextRequest('http://localhost/api/parse', {
+    method: 'POST',
+    body: file,
+    headers: { 'x-filename': file.name },
+  })
 }
 
 async function collectSSEEvents(res: Response): Promise<Array<Record<string, unknown>>> {

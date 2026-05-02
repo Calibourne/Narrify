@@ -75,9 +75,11 @@ export default function Home() {
     setErrorMsg(null)
     setProgress({ done: 0, total: 0, stage: 'discovering', label: 'Scanning book structure…' })
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      const res = await fetch('/api/parse', { method: 'POST', body: formData })
+      const res = await fetch('/api/parse', {
+        method: 'POST',
+        body: file,
+        headers: { 'x-filename': file.name },
+      })
       if (!res.ok) {
         setErrorMsg(await readErrorMessage(res))
         setStatus('error')

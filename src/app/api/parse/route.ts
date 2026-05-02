@@ -6,21 +6,14 @@ function sseEvent(data: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
-  let formData: FormData
-  try {
-    formData = await request.formData()
-  } catch {
-    return NextResponse.json({ error: 'Invalid multipart request' }, { status: 400 })
-  }
-
-  const file = formData.get('file')
-  if (!file || !(file instanceof File)) {
+  const filename = request.headers.get('x-filename') ?? ''
+  if (!filename) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   }
 
   let parser
   try {
-    parser = selectParser(file.name)
+    parser = selectParser(filename)
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Unsupported format' },
@@ -28,7 +21,7 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer())
+  const buffer = Buffer.from(await request.arrayBuffer())
 
   const stream = new ReadableStream({
     async start(controller) {
