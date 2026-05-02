@@ -17,5 +17,5 @@ export type ProgressEvent = {
 export type ProgressCallback = (event: ProgressEvent) => void | Promise<void>
 
 export interface BookParser {
-  parse(buffer: Buffer, onProgress?: ProgressCallback): Promise<Chapter[]>
+  parse(buffer: Uint8Array, onProgress?: ProgressCallback): Promise<Chapter[]>
 }

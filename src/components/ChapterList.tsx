@@ -8,7 +8,7 @@ export default function ChapterList({ chapters }: Props) {
   return (
     <div className={styles.list}>
       {chapters.map((ch, i) => (
-        <ChapterItem key={ch.id} chapter={ch} defaultOpen={false} />
+        <ChapterItem key={ch.id} chapter={ch} defaultOpen={i === 0} />
       ))}
     </div>
   )

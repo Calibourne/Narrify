@@ -17,7 +17,7 @@ function resolveHref(opfPath: string, href: string): string {
 }
 
 export class EpubParser implements BookParser {
-  async parse(buffer: Buffer, onProgress?: ProgressCallback): Promise<Chapter[]> {
+  async parse(buffer: Uint8Array, onProgress?: ProgressCallback): Promise<Chapter[]> {
     const zip = await JSZip.loadAsync(buffer)
 
     const containerXml = await zip.file('META-INF/container.xml')?.async('string')

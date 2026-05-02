@@ -3,28 +3,32 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, expect, test, vi } from 'vitest'
 import Home from '@/app/page'
 
-const originalFetch = global.fetch
+vi.mock('@/lib/parsers', () => ({
+  selectParser: vi.fn(),
+}))
+
+import { selectParser } from '@/lib/parsers'
 
 afterEach(() => {
   cleanup()
-  global.fetch = originalFetch
   vi.restoreAllMocks()
   localStorage.clear()
 })
 
-test('shows progress bar immediately when parsing starts', async () => {
-  global.fetch = vi.fn(
-    () =>
-      new Promise<Response>(() => {
-        // Keep the request pending so the loading UI stays visible.
-      })
-  ) as typeof fetch
-
+function renderAndSelectFile(filename = 'sample.fb2') {
   const { container } = render(<Home />)
   const input = container.querySelector('input[type="file"]') as HTMLInputElement
-  const file = new File(['hello'], 'sample.fb2', { type: 'text/xml' })
-
+  const file = new File(['hello'], filename, { type: 'text/xml' })
   fireEvent.change(input, { target: { files: [file] } })
+  return { container, file }
+}
+
+test('shows progress bar immediately when parsing starts', async () => {
+  vi.mocked(selectParser).mockReturnValue({
+    parse: () => new Promise(() => {}),
+  })
+
+  renderAndSelectFile()
   fireEvent.click(screen.getByRole('button', { name: 'Parse Book' }))
 
   await waitFor(() => {
@@ -32,51 +36,29 @@ test('shows progress bar immediately when parsing starts', async () => {
   })
 })
 
-test('shows plain-text server errors instead of falling back to generic message', async () => {
-  global.fetch = vi.fn(async () => new Response('Payload too large', { status: 413 })) as typeof fetch
+test('shows error message when parser throws', async () => {
+  vi.mocked(selectParser).mockReturnValue({
+    parse: () => Promise.reject(new Error('File is corrupted')),
+  })
 
-  const { container } = render(<Home />)
-  const input = container.querySelector('input[type="file"]') as HTMLInputElement
-  const file = new File(['hello'], 'sample.fb2', { type: 'text/xml' })
-
-  fireEvent.change(input, { target: { files: [file] } })
+  renderAndSelectFile()
   fireEvent.click(screen.getByRole('button', { name: 'Parse Book' }))
 
   await waitFor(() => {
-    expect(screen.getByText('Payload too large')).toBeInTheDocument()
+    expect(screen.getByText('File is corrupted')).toBeInTheDocument()
   })
 })
 
-test('updates progress label from staged SSE events', async () => {
-  const encoder = new TextEncoder()
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(
-          'data: {"type":"progress","done":0,"total":12,"stage":"discovering","label":"Scanning book structure…"}\n\n'
-        )
-      )
-      controller.enqueue(
-        encoder.encode(
-          'data: {"type":"progress","done":0,"total":12,"stage":"extracting","label":"Building chapter candidates…"}\n\n'
-        )
-      )
+test('updates progress label from parse events', async () => {
+  vi.mocked(selectParser).mockReturnValue({
+    parse: async (_buf, onProgress) => {
+      await onProgress?.({ done: 0, total: 12, stage: 'discovering', label: 'Scanning book structure…' })
+      await onProgress?.({ done: 0, total: 12, stage: 'extracting', label: 'Building chapter candidates…' })
+      return new Promise(() => {})
     },
   })
 
-  global.fetch = vi.fn(
-    async () =>
-      new Response(stream, {
-        status: 200,
-        headers: { 'Content-Type': 'text/event-stream' },
-      })
-  ) as typeof fetch
-
-  const { container } = render(<Home />)
-  const input = container.querySelector('input[type="file"]') as HTMLInputElement
-  const file = new File(['hello'], 'sample.fb2', { type: 'text/xml' })
-
-  fireEvent.change(input, { target: { files: [file] } })
+  renderAndSelectFile()
   fireEvent.click(screen.getByRole('button', { name: 'Parse Book' }))
 
   await waitFor(() => {
