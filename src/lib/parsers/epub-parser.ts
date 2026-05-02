@@ -58,6 +58,8 @@ export class EpubParser implements BookParser {
     let order = 0
     let done = 0
 
+    await onProgress?.(done, total)
+
     for (const itemref of eligibleItemrefs) {
       const manifest = manifestById.get(itemref['@_idref'])!
       const fullPath = resolveHref(opfPath, manifest.href)

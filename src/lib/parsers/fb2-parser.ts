@@ -79,6 +79,7 @@ export class Fb2Parser implements BookParser {
       const total = sections.length
       let order = 0
       let done = 0
+      await onProgress?.(done, total)
       for (const section of sections) {
         const sec = section as Record<string, unknown>
         const title = extractSectionTitle(sec)

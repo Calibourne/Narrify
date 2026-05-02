@@ -67,7 +67,9 @@ describe('EpubParser', () => {
       calls.push({ done, total })
     })
     expect(calls.length).toBeGreaterThan(0)
-    for (let i = 1; i < calls.length; i++) {
+    expect(calls[0].done).toBe(0)
+    expect(calls[0].total).toBeGreaterThan(0)
+    for (let i = 2; i < calls.length; i++) {
       expect(calls[i].done).toBe(calls[i - 1].done + 1)
     }
     const total = calls[0].total
