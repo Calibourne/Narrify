@@ -5,17 +5,6 @@ export type Chapter = {
   order: number
 }
 
-export type ParseStage = 'discovering' | 'extracting' | 'refining'
-
-export type ProgressEvent = {
-  done: number
-  total: number
-  stage?: ParseStage
-  label?: string
-}
-
-export type ProgressCallback = (event: ProgressEvent) => void | Promise<void>
-
 export interface BookParser {
-  parse(buffer: Uint8Array, onProgress?: ProgressCallback): Promise<Chapter[]>
+  parse(buffer: Uint8Array): Promise<Chapter[]>
 }

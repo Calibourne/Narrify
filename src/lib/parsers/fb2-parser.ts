@@ -1,6 +1,6 @@
 import { SaxesParser } from 'saxes'
 import { normalizeParagraphs } from './normalizer'
-import type { BookParser, Chapter, ProgressCallback, ProgressEvent } from './types'
+import type { BookParser, Chapter } from './types'
 
 interface RawSection {
   title: string
@@ -128,12 +128,8 @@ function parseFb2(xmlString: string): ParseResult {
   return { topSections, bodyParagraphs }
 }
 
-async function emit(onProgress: ProgressCallback | undefined, event: ProgressEvent): Promise<void> {
-  await onProgress?.(event)
-}
-
 export class Fb2Parser implements BookParser {
-  async parse(buffer: Uint8Array, onProgress?: ProgressCallback): Promise<Chapter[]> {
+  async parse(buffer: Uint8Array): Promise<Chapter[]> {
     const encoding = detectEncoding(buffer)
     let xmlString: string
     try {
@@ -148,17 +144,10 @@ export class Fb2Parser implements BookParser {
     let order = 0
 
     if (topSections.length > 0) {
-      const total = topSections.length
-      let done = 0
-
-      await emit(onProgress, { done, total, stage: 'discovering', label: 'Scanning book structure…' })
-      await emit(onProgress, { done, total, stage: 'extracting', label: 'Building chapter candidates…' })
-
       for (const section of topSections) {
         const rawParagraphs =
           section.paragraphs.length > 0 ? section.paragraphs : collectAllParagraphs(section.children)
         const paragraphs = normalizeParagraphs(rawParagraphs)
-        done++
         if (paragraphs.length > 0) {
           chapters.push({
             id: `chapter-${order}`,
@@ -168,24 +157,15 @@ export class Fb2Parser implements BookParser {
           })
           order++
         }
-        await emit(onProgress, { done, total, stage: 'extracting', label: 'Building chapter candidates…' })
       }
     } else {
       const rawParagraphs = normalizeParagraphs(bodyParagraphs)
       const chunks = chunkParagraphs(rawParagraphs, 24)
-      const total = Math.max(chunks.length, 1)
-      let done = 0
-
-      await emit(onProgress, { done, total, stage: 'discovering', label: 'Scanning book structure…' })
-      await emit(onProgress, { done, total, stage: 'extracting', label: 'Building chapter candidates…' })
-
       for (const chunk of chunks) {
         if (chunk.length > 0) {
           chapters.push({ id: `chapter-${order}`, paragraphs: chunk, order })
           order++
         }
-        done++
-        await emit(onProgress, { done, total, stage: 'extracting', label: 'Building chapter candidates…' })
       }
     }
 

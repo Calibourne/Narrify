@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import * as cheerio from 'cheerio'
 import { XMLParser } from 'fast-xml-parser'
 import { normalizeParagraphs } from './normalizer'
-import type { BookParser, Chapter, ProgressCallback } from './types'
+import type { BookParser, Chapter } from './types'
 
 const xmlParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' })
 
@@ -17,7 +17,7 @@ function resolveHref(opfPath: string, href: string): string {
 }
 
 export class EpubParser implements BookParser {
-  async parse(buffer: Uint8Array, onProgress?: ProgressCallback): Promise<Chapter[]> {
+  async parse(buffer: Uint8Array): Promise<Chapter[]> {
     const zip = await JSZip.loadAsync(buffer)
 
     const containerXml = await zip.file('META-INF/container.xml')?.async('string')
@@ -53,18 +53,13 @@ export class EpubParser implements BookParser {
       return true
     })
 
-    const total = eligibleItemrefs.length
     const chapters: Chapter[] = []
     let order = 0
-    let done = 0
-
-    await onProgress?.({ done, total })
 
     for (const itemref of eligibleItemrefs) {
       const manifest = manifestById.get(itemref['@_idref'])!
       const fullPath = resolveHref(opfPath, manifest.href)
       const content = await zip.file(fullPath)?.async('string')
-      done++
       if (content) {
         const $ = cheerio.load(content)
         const title = $('h1,h2,h3').first().text().trim() || undefined
@@ -77,7 +72,6 @@ export class EpubParser implements BookParser {
           order++
         }
       }
-      await onProgress?.({ done, total })
     }
 
     if (chapters.length === 0) throw new Error('No content found in EPUB')

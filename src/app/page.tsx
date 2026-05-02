@@ -1,22 +1,14 @@
 'use client'
 import { useState } from 'react'
 import { selectParser } from '@/lib/parsers'
-import type { Chapter, ParseStage } from '@/lib/parsers/types'
+import type { Chapter } from '@/lib/parsers/types'
 import ThemeToggle from '@/components/ThemeToggle'
 import UploadZone from '@/components/UploadZone'
 import StatsBadge from '@/components/StatsBadge'
 import ChapterList from '@/components/ChapterList'
-import ProgressBar from '@/components/ProgressBar'
 import styles from './page.module.css'
 
 type Status = 'idle' | 'uploading' | 'success' | 'error'
-type ProgressState = {
-  done: number
-  total: number
-  stage?: ParseStage
-  label?: string
-}
-
 
 export default function Home() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -27,7 +19,6 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null)
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [progress, setProgress] = useState<ProgressState | null>(null)
 
   function toggleTheme() {
     setTheme((t) => {
@@ -55,7 +46,6 @@ export default function Home() {
     if (!file) return
     setStatus('uploading')
     setErrorMsg(null)
-    setProgress({ done: 0, total: 0, stage: 'discovering', label: 'Scanning book structure…' })
     try {
       let parser
       try {
@@ -63,20 +53,15 @@ export default function Home() {
       } catch (err) {
         setErrorMsg(err instanceof Error ? err.message : 'Unsupported format')
         setStatus('error')
-        setProgress(null)
         return
       }
       const buffer = new Uint8Array(await file.arrayBuffer())
-      const chapters = await parser.parse(buffer, (event) => {
-        setProgress({ done: event.done, total: event.total, stage: event.stage, label: event.label })
-      })
+      const chapters = await parser.parse(buffer)
       setChapters(chapters)
       setStatus('success')
-      setProgress(null)
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Something went wrong. Try again.')
       setStatus('error')
-      setProgress(null)
     }
   }
 
@@ -113,14 +98,6 @@ export default function Home() {
             {uploading ? 'Parsing…' : 'Parse Book'}
           </button>
 
-          {uploading && progress && (
-            <ProgressBar
-              done={progress.done}
-              total={progress.total}
-              stage={progress.stage}
-              label={progress.label}
-            />
-          )}
           {errorMsg && <p className={styles.error}>{errorMsg}</p>}
         </aside>
 
