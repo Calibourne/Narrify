@@ -58,7 +58,7 @@ export class EpubParser implements BookParser {
     let order = 0
     let done = 0
 
-    await onProgress?.(done, total)
+    await onProgress?.({ done, total })
 
     for (const itemref of eligibleItemrefs) {
       const manifest = manifestById.get(itemref['@_idref'])!
@@ -77,7 +77,7 @@ export class EpubParser implements BookParser {
           order++
         }
       }
-      await onProgress?.(done, total)
+      await onProgress?.({ done, total })
     }
 
     if (chapters.length === 0) throw new Error('No content found in EPUB')

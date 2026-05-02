@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        const chapters = await parser.parse(buffer, async (done, total) => {
-          await pushEvent({ type: 'progress', done, total })
+        const chapters = await parser.parse(buffer, async (event) => {
+          await pushEvent({ type: 'progress', ...event })
         })
         await pushEvent({ type: 'done', chapters })
       } catch (err) {

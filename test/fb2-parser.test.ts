@@ -57,15 +57,19 @@ describe('Fb2Parser', () => {
 
   it('calls onProgress for each section processed', async () => {
     const buffer = readFileSync(fixturePath)
-    const calls: Array<{ done: number; total: number }> = []
-    const chapters = await new Fb2Parser().parse(buffer, (done, total) => {
-      calls.push({ done, total })
+    const calls: Array<{ done: number; total: number; stage?: string; label?: string }> = []
+    const chapters = await new Fb2Parser().parse(buffer, (event) => {
+      calls.push(event)
     })
-    expect(calls.length).toBe(chapters.length + 1)
+    expect(calls.length).toBe(chapters.length + 2)
+    expect(calls[0].stage).toBe('discovering')
     expect(calls[0].done).toBe(0)
     expect(calls[0].total).toBeGreaterThan(0)
+    expect(calls[1].stage).toBe('extracting')
+    expect(calls[1].done).toBe(0)
     for (let i = 2; i < calls.length; i++) {
       expect(calls[i].done).toBe(calls[i - 1].done + 1)
+      expect(calls[i].stage).toBe('extracting')
     }
     const total = calls[0].total
     expect(calls.every((c) => c.total === total)).toBe(true)

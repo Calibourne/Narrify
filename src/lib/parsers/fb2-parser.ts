@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser'
 import { normalizeParagraphs } from './normalizer'
-import type { BookParser, Chapter, ProgressCallback } from './types'
+import type { BookParser, Chapter, ProgressCallback, ProgressEvent } from './types'
 
 const xmlParser = new XMLParser({
   ignoreAttributes: false,
@@ -42,6 +42,10 @@ function collectParagraphs(section: Record<string, unknown>): string[] {
   return result
 }
 
+function collectTopLevelParagraphs(section: Record<string, unknown>): string[] {
+  return toArray(section['p'] as unknown).map(extractText)
+}
+
 function extractSectionTitle(section: Record<string, unknown>): string | undefined {
   const titleNode = section['title'] as Record<string, unknown> | undefined
   if (!titleNode) return undefined
@@ -54,6 +58,18 @@ function detectEncoding(buffer: Buffer): string {
   const header = buffer.slice(0, 200).toString('ascii')
   const match = header.match(/encoding=["']([^"']+)["']/i)
   return match ? match[1].toLowerCase() : 'utf-8'
+}
+
+function chunkParagraphs(paragraphs: string[], chunkSize: number): string[][] {
+  const chunks: string[][] = []
+  for (let i = 0; i < paragraphs.length; i += chunkSize) {
+    chunks.push(paragraphs.slice(i, i + chunkSize))
+  }
+  return chunks
+}
+
+async function emit(onProgress: ProgressCallback | undefined, event: ProgressEvent): Promise<void> {
+  await onProgress?.(event)
 }
 
 export class Fb2Parser implements BookParser {
@@ -74,30 +90,73 @@ export class Fb2Parser implements BookParser {
 
     const sections = toArray(mainBody?.section)
     const chapters: Chapter[] = []
+    let order = 0
 
     if (sections.length > 0) {
       const total = sections.length
-      let order = 0
       let done = 0
-      await onProgress?.(done, total)
+      await emit(onProgress, {
+        done,
+        total,
+        stage: 'discovering',
+        label: 'Scanning book structure…',
+      })
+      await emit(onProgress, {
+        done,
+        total,
+        stage: 'extracting',
+        label: 'Building chapter candidates…',
+      })
+
       for (const section of sections) {
         const sec = section as Record<string, unknown>
         const title = extractSectionTitle(sec)
-        const rawParagraphs = collectParagraphs(sec)
-        const paragraphs = normalizeParagraphs(rawParagraphs)
+        const rawParagraphs = collectTopLevelParagraphs(sec)
+        const nestedParagraphs = rawParagraphs.length > 0 ? [] : collectParagraphs(sec)
+        const paragraphs = normalizeParagraphs(rawParagraphs.length > 0 ? rawParagraphs : nestedParagraphs)
         done++
         if (paragraphs.length > 0) {
           chapters.push({ id: `chapter-${order}`, title, paragraphs, order })
           order++
         }
-        await onProgress?.(done, total)
+        await emit(onProgress, {
+          done,
+          total,
+          stage: 'extracting',
+          label: 'Building chapter candidates…',
+        })
       }
     } else {
-      // Fallback: treat entire body as single chapter
-      const rawParagraphs = collectParagraphs(mainBody as Record<string, unknown>)
-      const paragraphs = normalizeParagraphs(rawParagraphs)
-      if (paragraphs.length > 0) {
-        chapters.push({ id: 'chapter-0', paragraphs, order: 0 })
+      const rawParagraphs = normalizeParagraphs(collectParagraphs(mainBody as Record<string, unknown>))
+      const chunks = chunkParagraphs(rawParagraphs, 24)
+      const total = Math.max(chunks.length, 1)
+      let done = 0
+
+      await emit(onProgress, {
+        done,
+        total,
+        stage: 'discovering',
+        label: 'Scanning book structure…',
+      })
+      await emit(onProgress, {
+        done,
+        total,
+        stage: 'extracting',
+        label: 'Building chapter candidates…',
+      })
+
+      for (const chunk of chunks) {
+        if (chunk.length > 0) {
+          chapters.push({ id: `chapter-${order}`, paragraphs: chunk, order })
+          order++
+        }
+        done++
+        await emit(onProgress, {
+          done,
+          total,
+          stage: 'extracting',
+          label: 'Building chapter candidates…',
+        })
       }
     }
 

@@ -63,8 +63,8 @@ describe('EpubParser', () => {
   it('calls onProgress for each item processed', async () => {
     const buffer = readFileSync(fixturePath)
     const calls: Array<{ done: number; total: number }> = []
-    await new EpubParser().parse(buffer, (done, total) => {
-      calls.push({ done, total })
+    await new EpubParser().parse(buffer, (event) => {
+      calls.push(event)
     })
     expect(calls.length).toBeGreaterThan(0)
     expect(calls[0].done).toBe(0)
