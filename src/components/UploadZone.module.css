@@ -1,0 +1,32 @@
+.zone {
+  border: 2px dashed var(--border);
+  border-radius: 6px;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-muted);
+  font-size: 13px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.zone:hover {
+  border-color: var(--accent);
+}
+
+.hint {
+  font-size: 11px;
+  color: var(--border);
+}
+
+.dragging {
+  border-color: var(--accent);
+  background: var(--surface-subtle);
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
