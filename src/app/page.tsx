@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import type { Chapter } from '@/lib/parsers/types'
+import type { Chapter, ParseStage } from '@/lib/parsers/types'
 import ThemeToggle from '@/components/ThemeToggle'
 import UploadZone from '@/components/UploadZone'
 import StatsBadge from '@/components/StatsBadge'
@@ -9,6 +9,12 @@ import ProgressBar from '@/components/ProgressBar'
 import styles from './page.module.css'
 
 type Status = 'idle' | 'uploading' | 'success' | 'error'
+type ProgressState = {
+  done: number
+  total: number
+  stage?: ParseStage
+  label?: string
+}
 
 async function readErrorMessage(res: Response): Promise<string> {
   const text = await res.text()
@@ -39,7 +45,7 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null)
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const [progress, setProgress] = useState<ProgressState | null>(null)
 
   function toggleTheme() {
     setTheme((t) => {
@@ -67,7 +73,7 @@ export default function Home() {
     if (!file) return
     setStatus('uploading')
     setErrorMsg(null)
-    setProgress({ done: 0, total: 0 })
+    setProgress({ done: 0, total: 0, stage: 'discovering', label: 'Scanning book structure…' })
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -95,7 +101,12 @@ export default function Home() {
           if (!line.startsWith('data: ')) continue
           const event = JSON.parse(line.slice(6))
           if (event.type === 'progress') {
-            setProgress({ done: event.done, total: event.total })
+            setProgress({
+              done: event.done,
+              total: event.total,
+              stage: event.stage,
+              label: event.label,
+            })
           } else if (event.type === 'done') {
             setChapters(event.chapters)
             setStatus('success')
@@ -150,7 +161,14 @@ export default function Home() {
             {uploading ? 'Parsing…' : 'Parse Book'}
           </button>
 
-          {uploading && progress && <ProgressBar done={progress.done} total={progress.total} />}
+          {uploading && progress && (
+            <ProgressBar
+              done={progress.done}
+              total={progress.total}
+              stage={progress.stage}
+              label={progress.label}
+            />
+          )}
           {errorMsg && <p className={styles.error}>{errorMsg}</p>}
         </aside>
 

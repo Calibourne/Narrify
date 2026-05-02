@@ -37,3 +37,17 @@ test('shows preparing state when total is unknown', () => {
   expect(fill.style.width).toBe('12%')
   unmount()
 })
+
+test('shows stage label when provided', () => {
+  const { unmount } = render(
+    <ProgressBar
+      done={0}
+      total={12}
+      stage="discovering"
+      label="Scanning book structure…"
+    />
+  )
+  expect(screen.getByText('Scanning book structure…')).toBeInTheDocument()
+  expect(screen.getByText('0 / 12 chapters')).toBeInTheDocument()
+  unmount()
+})
