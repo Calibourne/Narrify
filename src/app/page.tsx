@@ -5,9 +5,30 @@ import ThemeToggle from '@/components/ThemeToggle'
 import UploadZone from '@/components/UploadZone'
 import StatsBadge from '@/components/StatsBadge'
 import ChapterList from '@/components/ChapterList'
+import ProgressBar from '@/components/ProgressBar'
 import styles from './page.module.css'
 
 type Status = 'idle' | 'uploading' | 'success' | 'error'
+
+async function readErrorMessage(res: Response): Promise<string> {
+  const text = await res.text()
+  if (text) {
+    try {
+      const json = JSON.parse(text) as { error?: string; message?: string }
+      if (json.error) return json.error
+      if (json.message) return json.message
+    } catch {
+      return text
+    }
+    return text
+  }
+
+  if (res.status && res.statusText) {
+    return `${res.status} ${res.statusText}`
+  }
+
+  return 'Something went wrong. Try again.'
+}
 
 export default function Home() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -18,6 +39,7 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null)
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
 
   function toggleTheme() {
     setTheme((t) => {
@@ -45,21 +67,50 @@ export default function Home() {
     if (!file) return
     setStatus('uploading')
     setErrorMsg(null)
+    setProgress({ done: 0, total: 0 })
     try {
       const formData = new FormData()
       formData.append('file', file)
       const res = await fetch('/api/parse', { method: 'POST', body: formData })
-      const json = await res.json()
       if (!res.ok) {
-        setErrorMsg(json.error ?? 'Something went wrong. Try again.')
+        setErrorMsg(await readErrorMessage(res))
         setStatus('error')
+        setProgress(null)
         return
       }
-      setChapters(json.chapters)
-      setStatus('success')
+      if (!res.body) {
+        throw new Error('Empty response body')
+      }
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        const chunks = buffer.split('\n\n')
+        buffer = chunks.pop() ?? ''
+        for (const chunk of chunks) {
+          const line = chunk.trim()
+          if (!line.startsWith('data: ')) continue
+          const event = JSON.parse(line.slice(6))
+          if (event.type === 'progress') {
+            setProgress({ done: event.done, total: event.total })
+          } else if (event.type === 'done') {
+            setChapters(event.chapters)
+            setStatus('success')
+            setProgress(null)
+          } else if (event.type === 'error') {
+            setErrorMsg(event.message ?? 'Something went wrong. Try again.')
+            setStatus('error')
+            setProgress(null)
+          }
+        }
+      }
     } catch {
       setErrorMsg('Something went wrong. Try again.')
       setStatus('error')
+      setProgress(null)
     }
   }
 
@@ -99,6 +150,7 @@ export default function Home() {
             {uploading ? 'Parsing…' : 'Parse Book'}
           </button>
 
+          {uploading && progress && <ProgressBar done={progress.done} total={progress.total} />}
           {errorMsg && <p className={styles.error}>{errorMsg}</p>}
         </aside>
 
