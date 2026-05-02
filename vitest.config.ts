@@ -4,7 +4,8 @@ import path from 'path'
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['test/**/*.test.ts'],
+    include: ['test/**/*.test.ts', 'test/**/*.test.tsx'],
+    setupFiles: ['test/setup.ts'],
   },
   resolve: {
     alias: {
