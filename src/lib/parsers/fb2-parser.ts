@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser'
 import { normalizeParagraphs } from './normalizer'
-import type { BookParser, Chapter } from './types'
+import type { BookParser, Chapter, ProgressCallback } from './types'
 
 const xmlParser = new XMLParser({
   ignoreAttributes: false,
@@ -57,7 +57,7 @@ function detectEncoding(buffer: Buffer): string {
 }
 
 export class Fb2Parser implements BookParser {
-  async parse(buffer: Buffer): Promise<Chapter[]> {
+  async parse(buffer: Buffer, onProgress?: ProgressCallback): Promise<Chapter[]> {
     const encoding = detectEncoding(buffer)
     let xmlString: string
     try {
@@ -76,15 +76,20 @@ export class Fb2Parser implements BookParser {
     const chapters: Chapter[] = []
 
     if (sections.length > 0) {
+      const total = sections.length
       let order = 0
+      let done = 0
       for (const section of sections) {
         const sec = section as Record<string, unknown>
         const title = extractSectionTitle(sec)
         const rawParagraphs = collectParagraphs(sec)
         const paragraphs = normalizeParagraphs(rawParagraphs)
-        if (paragraphs.length === 0) continue
-        chapters.push({ id: `chapter-${order}`, title, paragraphs, order })
-        order++
+        done++
+        if (paragraphs.length > 0) {
+          chapters.push({ id: `chapter-${order}`, title, paragraphs, order })
+          order++
+        }
+        await onProgress?.(done, total)
       }
     } else {
       // Fallback: treat entire body as single chapter

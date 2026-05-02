@@ -5,6 +5,8 @@ export type Chapter = {
   order: number
 }
 
+export type ProgressCallback = (done: number, total: number) => void | Promise<void>
+
 export interface BookParser {
-  parse(file: Buffer): Promise<Chapter[]>
+  parse(buffer: Buffer, onProgress?: ProgressCallback): Promise<Chapter[]>
 }

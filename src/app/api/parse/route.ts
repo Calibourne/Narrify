@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { selectParser } from '@/lib/parsers'
 
+function sseEvent(data: unknown): string {
+  return `data: ${JSON.stringify(data)}\n\n`
+}
+
 export async function POST(request: NextRequest) {
   let formData: FormData
   try {
@@ -24,16 +28,34 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  let chapters
-  try {
-    const buffer = Buffer.from(await file.arrayBuffer())
-    chapters = await parser.parse(buffer)
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Parse failed'
-    const isKnownParseError =
-      message.startsWith('Invalid') || message.startsWith('No content')
-    return NextResponse.json({ error: message }, { status: isKnownParseError ? 422 : 500 })
-  }
+  const buffer = Buffer.from(await file.arrayBuffer())
 
-  return NextResponse.json({ chapters })
+  const stream = new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder()
+      const pushEvent = async (data: unknown) => {
+        controller.enqueue(encoder.encode(sseEvent(data)))
+        await Promise.resolve()
+      }
+
+      try {
+        const chapters = await parser.parse(buffer, async (done, total) => {
+          await pushEvent({ type: 'progress', done, total })
+        })
+        await pushEvent({ type: 'done', chapters })
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Parse failed'
+        await pushEvent({ type: 'error', message })
+      }
+      controller.close()
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  })
 }

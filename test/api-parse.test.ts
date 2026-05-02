@@ -10,27 +10,15 @@ function makeRequest(file: File | null, fieldName = 'file'): NextRequest {
   return new NextRequest('http://localhost/api/parse', { method: 'POST', body: formData })
 }
 
+async function collectSSEEvents(res: Response): Promise<Array<Record<string, unknown>>> {
+  const text = await res.text()
+  return text
+    .split('\n\n')
+    .filter((chunk) => chunk.trim().startsWith('data: '))
+    .map((chunk) => JSON.parse(chunk.trim().slice(6)))
+}
+
 describe('POST /api/parse', () => {
-  it('parses an EPUB and returns chapters', async () => {
-    const buf = readFileSync(join(__dirname, 'fixtures/sample.epub'))
-    const file = new File([buf], 'sample.epub', { type: 'application/epub+zip' })
-    const res = await POST(makeRequest(file))
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(Array.isArray(body.chapters)).toBe(true)
-    expect(body.chapters.length).toBeGreaterThan(0)
-  })
-
-  it('parses an FB2 and returns chapters', async () => {
-    const buf = readFileSync(join(__dirname, 'fixtures/sample.fb2'))
-    const file = new File([buf], 'sample.fb2', { type: 'text/xml' })
-    const res = await POST(makeRequest(file))
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(Array.isArray(body.chapters)).toBe(true)
-    expect(body.chapters.length).toBeGreaterThan(0)
-  })
-
   it('returns 400 when no file is provided', async () => {
     const res = await POST(makeRequest(null))
     expect(res.status).toBe(400)
@@ -44,5 +32,53 @@ describe('POST /api/parse', () => {
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.error).toMatch(/Unsupported/)
+  })
+
+  it('streams SSE with progress and done events for EPUB', async () => {
+    const buf = readFileSync(join(__dirname, 'fixtures/sample.epub'))
+    const file = new File([buf], 'sample.epub', { type: 'application/epub+zip' })
+    const res = await POST(makeRequest(file))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('text/event-stream')
+    const events = await collectSSEEvents(res)
+    const progressEvents = events.filter((e) => e.type === 'progress')
+    const doneEvent = events.find((e) => e.type === 'done')
+    expect(progressEvents.length).toBeGreaterThan(0)
+    expect(doneEvent).toBeDefined()
+    expect(progressEvents[0]?.done).toBe(1)
+    expect(progressEvents.at(-1)?.done).toBe(progressEvents.at(-1)?.total)
+    expect(events.at(-1)?.type).toBe('done')
+    expect(Array.isArray((doneEvent as { chapters: unknown[] }).chapters)).toBe(true)
+    expect((doneEvent as { chapters: unknown[] }).chapters.length).toBeGreaterThan(0)
+  })
+
+  it('streams SSE with progress and done events for FB2', async () => {
+    const buf = readFileSync(join(__dirname, 'fixtures/sample.fb2'))
+    const file = new File([buf], 'sample.fb2', { type: 'text/xml' })
+    const res = await POST(makeRequest(file))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('text/event-stream')
+    const events = await collectSSEEvents(res)
+    const progressEvents = events.filter((e) => e.type === 'progress')
+    const doneEvent = events.find((e) => e.type === 'done')
+    expect(progressEvents.length).toBeGreaterThan(0)
+    expect(doneEvent).toBeDefined()
+    expect(progressEvents[0]?.done).toBe(1)
+    expect(progressEvents.at(-1)?.done).toBe(progressEvents.at(-1)?.total)
+    expect(events.at(-1)?.type).toBe('done')
+    expect(Array.isArray((doneEvent as { chapters: unknown[] }).chapters)).toBe(true)
+  })
+
+  it('streams an error event when parse fails', async () => {
+    const file = new File([Buffer.from('not a valid epub')], 'bad.epub', {
+      type: 'application/epub+zip',
+    })
+    const res = await POST(makeRequest(file))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('content-type')).toContain('text/event-stream')
+    const events = await collectSSEEvents(res)
+    const errorEvent = events.find((e) => e.type === 'error')
+    expect(errorEvent).toBeDefined()
+    expect(typeof (errorEvent as { message: string }).message).toBe('string')
   })
 })

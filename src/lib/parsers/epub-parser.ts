@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import * as cheerio from 'cheerio'
 import { XMLParser } from 'fast-xml-parser'
 import { normalizeParagraphs } from './normalizer'
-import type { BookParser, Chapter } from './types'
+import type { BookParser, Chapter, ProgressCallback } from './types'
 
 const xmlParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' })
 
@@ -17,7 +17,7 @@ function resolveHref(opfPath: string, href: string): string {
 }
 
 export class EpubParser implements BookParser {
-  async parse(buffer: Buffer): Promise<Chapter[]> {
+  async parse(buffer: Buffer, onProgress?: ProgressCallback): Promise<Chapter[]> {
     const zip = await JSZip.loadAsync(buffer)
 
     const containerXml = await zip.file('META-INF/container.xml')?.async('string')
@@ -44,34 +44,38 @@ export class EpubParser implements BookParser {
       })
     }
 
-    const spineItemrefs = toArray(pkg?.spine?.itemref)
+    const allItemrefs = toArray(pkg?.spine?.itemref)
+    const eligibleItemrefs = allItemrefs.filter((itemref) => {
+      const manifest = manifestById.get(itemref['@_idref'])
+      if (!manifest) return false
+      if (manifest.properties.includes('nav')) return false
+      if (manifest.mediaType === 'application/x-dtbncx+xml') return false
+      return true
+    })
+
+    const total = eligibleItemrefs.length
     const chapters: Chapter[] = []
     let order = 0
+    let done = 0
 
-    for (const itemref of spineItemrefs) {
-      const idref = itemref['@_idref']
-      const manifest = manifestById.get(idref)
-      if (!manifest) continue
-
-      // Skip nav and NCX items
-      if (manifest.properties.includes('nav')) continue
-      if (manifest.mediaType === 'application/x-dtbncx+xml') continue
-
+    for (const itemref of eligibleItemrefs) {
+      const manifest = manifestById.get(itemref['@_idref'])!
       const fullPath = resolveHref(opfPath, manifest.href)
       const content = await zip.file(fullPath)?.async('string')
-      if (!content) continue
-
-      const $ = cheerio.load(content)
-      const title = $('h1,h2,h3').first().text().trim() || undefined
-      const rawParagraphs = $('p')
-        .map((_, el) => $(el).text())
-        .get()
-
-      const paragraphs = normalizeParagraphs(rawParagraphs)
-      if (paragraphs.length === 0) continue
-
-      chapters.push({ id: `chapter-${order}`, title, paragraphs, order })
-      order++
+      done++
+      if (content) {
+        const $ = cheerio.load(content)
+        const title = $('h1,h2,h3').first().text().trim() || undefined
+        const rawParagraphs = $('p')
+          .map((_, el) => $(el).text())
+          .get()
+        const paragraphs = normalizeParagraphs(rawParagraphs)
+        if (paragraphs.length > 0) {
+          chapters.push({ id: `chapter-${order}`, title, paragraphs, order })
+          order++
+        }
+      }
+      await onProgress?.(done, total)
     }
 
     if (chapters.length === 0) throw new Error('No content found in EPUB')
