@@ -1,57 +1,16 @@
-import { XMLParser } from 'fast-xml-parser'
+import { SaxesParser } from 'saxes'
 import { normalizeParagraphs } from './normalizer'
 import type { BookParser, Chapter, ProgressCallback, ProgressEvent } from './types'
 
-const xmlParser = new XMLParser({
-  ignoreAttributes: false,
-  attributeNamePrefix: '@_',
-  textNodeName: '#text',
-  isArray: (name) => ['section', 'p', 'body'].includes(name),
-})
-
-function toArray<T>(v: T | T[] | undefined): T[] {
-  if (!v) return []
-  return Array.isArray(v) ? v : [v]
+interface RawSection {
+  title: string
+  paragraphs: string[]
+  children: RawSection[]
 }
 
-function extractText(node: unknown): string {
-  if (typeof node === 'string') return node
-  if (typeof node === 'number') return String(node)
-  if (!node || typeof node !== 'object') return ''
-  const obj = node as Record<string, unknown>
-  const textParts: string[] = []
-  if (obj['#text']) textParts.push(String(obj['#text']))
-  for (const key of Object.keys(obj)) {
-    if (key.startsWith('@_')) continue
-    if (key === '#text') continue
-    textParts.push(extractText(obj[key]))
-  }
-  return textParts.join(' ')
-}
-
-function collectParagraphs(section: Record<string, unknown>): string[] {
-  const result: string[] = []
-  const paragraphs = toArray(section['p'] as unknown)
-  for (const p of paragraphs) {
-    result.push(extractText(p))
-  }
-  const nested = toArray(section['section'] as unknown)
-  for (const sub of nested) {
-    result.push(...collectParagraphs(sub as Record<string, unknown>))
-  }
-  return result
-}
-
-function collectTopLevelParagraphs(section: Record<string, unknown>): string[] {
-  return toArray(section['p'] as unknown).map(extractText)
-}
-
-function extractSectionTitle(section: Record<string, unknown>): string | undefined {
-  const titleNode = section['title'] as Record<string, unknown> | undefined
-  if (!titleNode) return undefined
-  const titleParts = toArray(titleNode['p'] as unknown).map(extractText)
-  const joined = titleParts.join(' ').trim()
-  return joined || undefined
+interface ParseResult {
+  topSections: RawSection[]
+  bodyParagraphs: string[]
 }
 
 function detectEncoding(buffer: Buffer): string {
@@ -68,6 +27,107 @@ function chunkParagraphs(paragraphs: string[], chunkSize: number): string[][] {
   return chunks
 }
 
+function collectAllParagraphs(sections: RawSection[]): string[] {
+  const result: string[] = []
+  for (const s of sections) {
+    result.push(...s.paragraphs)
+    if (s.children.length > 0) result.push(...collectAllParagraphs(s.children))
+  }
+  return result
+}
+
+function parseFb2(xmlString: string): ParseResult {
+  const parser = new SaxesParser({ xmlns: true })
+
+  const sectionStack: RawSection[] = []
+  const topSections: RawSection[] = []
+  const bodyParagraphs: string[] = []
+
+  let bodyCount = 0
+  let inBody = false
+  let inTitle = false
+  let inP = false
+  let currentText = ''
+
+  parser.on('opentag', (node) => {
+    const local = node.local || node.name
+
+    if (local === 'body') {
+      bodyCount++
+      if (bodyCount === 1) inBody = true
+      return
+    }
+
+    if (!inBody) return
+
+    if (local === 'section') {
+      sectionStack.push({ title: '', paragraphs: [], children: [] })
+    } else if (local === 'title' && sectionStack.length > 0) {
+      inTitle = true
+    } else if (local === 'p') {
+      inP = true
+      currentText = ''
+    }
+  })
+
+  parser.on('text', (text) => {
+    if (inP) currentText += text
+  })
+
+  parser.on('cdata', (cdata) => {
+    if (inP) currentText += cdata
+  })
+
+  parser.on('closetag', (node) => {
+    const local = node.local || node.name
+
+    if (local === 'body') {
+      inBody = false
+      return
+    }
+
+    if (!inBody) return
+
+    if (local === 'p' && inP) {
+      const text = currentText.trim()
+      inP = false
+      currentText = ''
+
+      if (text) {
+        if (sectionStack.length > 0) {
+          const current = sectionStack[sectionStack.length - 1]
+          if (inTitle) {
+            current.title = current.title ? `${current.title} ${text}` : text
+          } else {
+            current.paragraphs.push(text)
+          }
+        } else {
+          bodyParagraphs.push(text)
+        }
+      }
+      return
+    }
+
+    if (local === 'title') {
+      inTitle = false
+      return
+    }
+
+    if (local === 'section') {
+      const completed = sectionStack.pop()!
+      if (sectionStack.length === 0) {
+        topSections.push(completed)
+      } else {
+        sectionStack[sectionStack.length - 1].children.push(completed)
+      }
+    }
+  })
+
+  parser.write(xmlString).close()
+
+  return { topSections, bodyParagraphs }
+}
+
 async function emit(onProgress: ProgressCallback | undefined, event: ProgressEvent): Promise<void> {
   await onProgress?.(event)
 }
@@ -82,68 +142,42 @@ export class Fb2Parser implements BookParser {
       xmlString = new TextDecoder('utf-8').decode(buffer)
     }
 
-    const parsed = xmlParser.parse(xmlString)
-    const root = parsed?.FictionBook ?? parsed
-    const bodies = toArray(root?.body)
-    const mainBody = bodies[0]
-    if (!mainBody) throw new Error('Invalid FB2: no body element found')
+    const { topSections, bodyParagraphs } = parseFb2(xmlString)
 
-    const sections = toArray(mainBody?.section)
     const chapters: Chapter[] = []
     let order = 0
 
-    if (sections.length > 0) {
-      const total = sections.length
+    if (topSections.length > 0) {
+      const total = topSections.length
       let done = 0
-      await emit(onProgress, {
-        done,
-        total,
-        stage: 'discovering',
-        label: 'Scanning book structure…',
-      })
-      await emit(onProgress, {
-        done,
-        total,
-        stage: 'extracting',
-        label: 'Building chapter candidates…',
-      })
 
-      for (const section of sections) {
-        const sec = section as Record<string, unknown>
-        const title = extractSectionTitle(sec)
-        const rawParagraphs = collectTopLevelParagraphs(sec)
-        const nestedParagraphs = rawParagraphs.length > 0 ? [] : collectParagraphs(sec)
-        const paragraphs = normalizeParagraphs(rawParagraphs.length > 0 ? rawParagraphs : nestedParagraphs)
+      await emit(onProgress, { done, total, stage: 'discovering', label: 'Scanning book structure…' })
+      await emit(onProgress, { done, total, stage: 'extracting', label: 'Building chapter candidates…' })
+
+      for (const section of topSections) {
+        const rawParagraphs =
+          section.paragraphs.length > 0 ? section.paragraphs : collectAllParagraphs(section.children)
+        const paragraphs = normalizeParagraphs(rawParagraphs)
         done++
         if (paragraphs.length > 0) {
-          chapters.push({ id: `chapter-${order}`, title, paragraphs, order })
+          chapters.push({
+            id: `chapter-${order}`,
+            title: section.title || undefined,
+            paragraphs,
+            order,
+          })
           order++
         }
-        await emit(onProgress, {
-          done,
-          total,
-          stage: 'extracting',
-          label: 'Building chapter candidates…',
-        })
+        await emit(onProgress, { done, total, stage: 'extracting', label: 'Building chapter candidates…' })
       }
     } else {
-      const rawParagraphs = normalizeParagraphs(collectParagraphs(mainBody as Record<string, unknown>))
+      const rawParagraphs = normalizeParagraphs(bodyParagraphs)
       const chunks = chunkParagraphs(rawParagraphs, 24)
       const total = Math.max(chunks.length, 1)
       let done = 0
 
-      await emit(onProgress, {
-        done,
-        total,
-        stage: 'discovering',
-        label: 'Scanning book structure…',
-      })
-      await emit(onProgress, {
-        done,
-        total,
-        stage: 'extracting',
-        label: 'Building chapter candidates…',
-      })
+      await emit(onProgress, { done, total, stage: 'discovering', label: 'Scanning book structure…' })
+      await emit(onProgress, { done, total, stage: 'extracting', label: 'Building chapter candidates…' })
 
       for (const chunk of chunks) {
         if (chunk.length > 0) {
@@ -151,12 +185,7 @@ export class Fb2Parser implements BookParser {
           order++
         }
         done++
-        await emit(onProgress, {
-          done,
-          total,
-          stage: 'extracting',
-          label: 'Building chapter candidates…',
-        })
+        await emit(onProgress, { done, total, stage: 'extracting', label: 'Building chapter candidates…' })
       }
     }
 
