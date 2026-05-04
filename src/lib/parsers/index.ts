@@ -6,6 +6,7 @@ export { EpubParser, Fb2Parser }
 export type { BookParser, Chapter } from './types'
 
 export function selectParser(filename: string): BookParser {
+  if (filename.endsWith('.fb2.zip')) return new Fb2Parser()
   const ext = filename.split('.').pop()?.toLowerCase()
   if (ext === 'epub') return new EpubParser()
   if (ext === 'fb2') return new Fb2Parser()
