@@ -21,7 +21,7 @@ Accept `.fb2.zip` uploads and parse them the same as `.fb2` files.
 3. Read that entry as `Uint8Array`.
 4. Proceed with normal FB2 parsing on those bytes.
 
-If the ZIP contains no `.fb2` entry, throw a descriptive error: `"No .fb2 file found inside ZIP"`.
+If the ZIP contains no `.fb2` entry, throw a descriptive error: `"No .fb2 file found inside the uploaded ZIP archive"`.
 
 No new parser class is needed. One parser handles both `.fb2` and `.fb2.zip` transparently.
 
@@ -49,9 +49,13 @@ if (filename.endsWith('.fb2.zip')) return new Fb2Parser()
 
 | Situation | Behaviour |
 |-----------|-----------|
-| ZIP with no `.fb2` inside | Error: `"No .fb2 file found inside ZIP"` |
+| ZIP with no `.fb2` inside | Error: `"No .fb2 file found inside the uploaded ZIP archive"` |
 | Corrupt ZIP | jszip throws; caught by existing `handleParse` try/catch in `page.tsx` |
 | Corrupt FB2 inside ZIP | Existing FB2 parse error path handles it |
+
+### Error display placement
+
+Currently errors render below the Parse button in the left panel. They should instead render in the right panel (where chapter output appears), so the left panel stays clean and the error message has more room. The right panel shows either the empty state, the error, or the parsed chapters — never more than one at a time.
 
 ## Files changed
 
@@ -60,3 +64,4 @@ if (filename.endsWith('.fb2.zip')) return new Fb2Parser()
 | `src/lib/parsers/fb2-parser.ts` | ZIP magic-byte detection + extraction |
 | `src/lib/parsers/index.ts` | Route `.fb2.zip` → `Fb2Parser` |
 | `src/components/UploadZone.tsx` | accept attribute + hint text |
+| `src/app/page.tsx` | Move error display from left panel to right panel |
