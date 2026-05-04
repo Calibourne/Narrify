@@ -1,9 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import JSZip from 'jszip'
 import { Fb2Parser } from '@/lib/parsers/fb2-parser'
 
 const fixturePath = join(__dirname, 'fixtures/sample.fb2')
+
+async function makeFb2Zip(entryName = 'book.fb2'): Promise<Uint8Array> {
+  const fb2Bytes = readFileSync(join(__dirname, 'fixtures/sample.fb2'))
+  const zip = new JSZip()
+  zip.file(entryName, fb2Bytes)
+  return new Uint8Array(await zip.generateAsync({ type: 'arraybuffer' }))
+}
 
 describe('Fb2Parser', () => {
   it('parses chapters from fixture', async () => {
@@ -123,5 +131,20 @@ describe('Fb2Parser', () => {
     releaseFirstProgress?.()
     await parsePromise
     expect(callbackCount).toBeGreaterThan(1)
+  })
+
+  it('parses chapters from a .fb2.zip buffer', async () => {
+    const zipBuffer = await makeFb2Zip()
+    const chapters = await new Fb2Parser().parse(zipBuffer)
+    expect(chapters.length).toBeGreaterThan(0)
+  })
+
+  it('throws when ZIP contains no .fb2 entry', async () => {
+    const zip = new JSZip()
+    zip.file('readme.txt', 'hello')
+    const buffer = new Uint8Array(await zip.generateAsync({ type: 'arraybuffer' }))
+    await expect(new Fb2Parser().parse(buffer)).rejects.toThrow(
+      'No .fb2 file found inside the uploaded ZIP archive'
+    )
   })
 })

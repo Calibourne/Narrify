@@ -1,4 +1,5 @@
 import { SaxesParser } from 'saxes'
+import JSZip from 'jszip'
 import { normalizeParagraphs } from './normalizer'
 import type { BookParser, Chapter } from './types'
 
@@ -130,7 +131,17 @@ function parseFb2(xmlString: string): ParseResult {
 }
 
 export class Fb2Parser implements BookParser {
+  private async extractFb2FromZip(buffer: Uint8Array): Promise<Uint8Array> {
+    const zip = await JSZip.loadAsync(buffer)
+    const entry = Object.values(zip.files).find(f => !f.dir && f.name.endsWith('.fb2'))
+    if (!entry) throw new Error('No .fb2 file found inside the uploaded ZIP archive')
+    return new Uint8Array(await entry.async('arraybuffer'))
+  }
+
   async parse(buffer: Uint8Array): Promise<Chapter[]> {
+    if (buffer[0] === 0x50 && buffer[1] === 0x4B && buffer[2] === 0x03 && buffer[3] === 0x04) {
+      buffer = await this.extractFb2FromZip(buffer)
+    }
     const encoding = detectEncoding(buffer)
     let xmlString: string
     try {
