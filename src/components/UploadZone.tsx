@@ -29,12 +29,12 @@ export default function UploadZone({ onFile, disabled }: Props) {
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
     >
-      <span>Drop .epub or .fb2 here</span>
+      <span>Drop .epub, .fb2, or .fb2.zip here</span>
       <span className={styles.hint}>or click to browse</span>
       <input
         ref={inputRef}
         type="file"
-        accept=".epub,.fb2"
+        accept=".epub,.fb2,.fb2.zip"
         disabled={disabled}
         onChange={handleChange}
         style={{ display: 'none' }}

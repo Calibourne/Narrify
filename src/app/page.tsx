@@ -98,12 +98,14 @@ export default function Home() {
             {uploading ? 'Parsing…' : 'Parse Book'}
           </button>
 
-          {errorMsg && <p className={styles.error}>{errorMsg}</p>}
         </aside>
 
         <main className={styles.right}>
-          {status !== 'success' && (
+          {status !== 'success' && status !== 'error' && (
             <p className={styles.empty}>Upload a book to get started.</p>
+          )}
+          {status === 'error' && errorMsg && (
+            <p className={styles.error}>{errorMsg}</p>
           )}
           {status === 'success' && chapters.length > 0 && (
             <>
