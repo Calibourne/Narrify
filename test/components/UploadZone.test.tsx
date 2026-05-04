@@ -6,7 +6,7 @@ import UploadZone from '@/components/UploadZone'
 test('shows placeholder text', () => {
   const { container } = render(<UploadZone onFile={() => {}} disabled={false} />)
   const zone = container.querySelector('div')!
-  expect(within(zone).getByText(/Drop .epub or .fb2/i)).toBeInTheDocument()
+  expect(within(zone).getByText(/Drop .epub, .fb2, or .fb2.zip/i)).toBeInTheDocument()
   expect(within(zone).getByText(/click to browse/i)).toBeInTheDocument()
 })
 
