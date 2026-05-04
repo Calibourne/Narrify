@@ -61,7 +61,7 @@ export class EpubParser implements BookParser {
       const fullPath = resolveHref(opfPath, manifest.href)
       const content = await zip.file(fullPath)?.async('string')
       if (content) {
-        const $ = cheerio.load(content)
+        const $ = cheerio.load(content, { xmlMode: true })
         const title = $('h1,h2,h3').first().text().trim() || undefined
         const rawParagraphs = $('p')
           .map((_, el) => $(el).text())

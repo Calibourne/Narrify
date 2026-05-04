@@ -54,7 +54,8 @@ function parseFb2(xmlString: string): ParseResult {
 
     if (local === 'body') {
       bodyCount++
-      if (bodyCount === 1) inBody = true
+      const nameAttr = (node.attributes?.name as any)?.value ?? ''
+      if (!nameAttr || nameAttr === 'main') inBody = true
       return
     }
 
