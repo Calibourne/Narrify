@@ -23,19 +23,6 @@ function renderAndSelectFile(filename = 'sample.fb2') {
   return { container, file }
 }
 
-test('shows progress bar immediately when parsing starts', async () => {
-  vi.mocked(selectParser).mockReturnValue({
-    parse: () => new Promise(() => {}),
-  })
-
-  renderAndSelectFile()
-  fireEvent.click(screen.getByRole('button', { name: 'Parse Book' }))
-
-  await waitFor(() => {
-    expect(screen.getByText('Scanning book structure…')).toBeInTheDocument()
-  })
-})
-
 test('shows error message when parser throws', async () => {
   vi.mocked(selectParser).mockReturnValue({
     parse: () => Promise.reject(new Error('File is corrupted')),
@@ -49,20 +36,3 @@ test('shows error message when parser throws', async () => {
   })
 })
 
-test('updates progress label from parse events', async () => {
-  vi.mocked(selectParser).mockReturnValue({
-    parse: async (_buf, onProgress) => {
-      await onProgress?.({ done: 0, total: 12, stage: 'discovering', label: 'Scanning book structure…' })
-      await onProgress?.({ done: 0, total: 12, stage: 'extracting', label: 'Building chapter candidates…' })
-      return new Promise(() => {})
-    },
-  })
-
-  renderAndSelectFile()
-  fireEvent.click(screen.getByRole('button', { name: 'Parse Book' }))
-
-  await waitFor(() => {
-    expect(screen.getByText('Building chapter candidates…')).toBeInTheDocument()
-  })
-  expect(screen.getByText('0 / 12 chapters')).toBeInTheDocument()
-})

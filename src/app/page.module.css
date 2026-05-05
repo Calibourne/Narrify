@@ -15,13 +15,29 @@
   top: 0;
   background: var(--background);
   z-index: 10;
+  background-image: linear-gradient(to right, hsl(var(--build-hue, 150) 55% 42% / 0.7), transparent);
+  background-size: 100% 2px;
+  background-position: bottom;
+  background-repeat: no-repeat;
+}
+
+.logoWrap {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .logo {
   font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.3px;
-  color: var(--foreground);
+}
+
+.buildName {
+  font-size: 9px;
+  font-family: var(--font-geist-mono);
+  opacity: 0.5;
+  color: inherit;
 }
 
 .panels {

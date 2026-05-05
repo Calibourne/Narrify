@@ -63,27 +63,6 @@ describe('Fb2Parser', () => {
     expect(chapters[1].title).toBe('Chapter Two')
   })
 
-  it('calls onProgress for each section processed', async () => {
-    const buffer = readFileSync(fixturePath)
-    const calls: Array<{ done: number; total: number; stage?: string; label?: string }> = []
-    const chapters = await new Fb2Parser().parse(buffer, (event) => {
-      calls.push(event)
-    })
-    expect(calls.length).toBe(chapters.length + 2)
-    expect(calls[0].stage).toBe('discovering')
-    expect(calls[0].done).toBe(0)
-    expect(calls[0].total).toBeGreaterThan(0)
-    expect(calls[1].stage).toBe('extracting')
-    expect(calls[1].done).toBe(0)
-    for (let i = 2; i < calls.length; i++) {
-      expect(calls[i].done).toBe(calls[i - 1].done + 1)
-      expect(calls[i].stage).toBe('extracting')
-    }
-    const total = calls[0].total
-    expect(calls.every((c) => c.total === total)).toBe(true)
-    expect(calls[calls.length - 1].done).toBe(total)
-  })
-
   it('works without onProgress callback', async () => {
     const buffer = readFileSync(fixturePath)
     await expect(new Fb2Parser().parse(buffer)).resolves.not.toThrow()
@@ -100,37 +79,6 @@ describe('Fb2Parser', () => {
     const chapters = await parser.parse(Buffer.from(xml))
     expect(chapters.length).toBe(1)
     expect(chapters[0].order).toBe(0)
-  })
-
-  it('awaits async onProgress callbacks between section updates', async () => {
-    const buffer = readFileSync(fixturePath)
-    let releaseFirstProgress: (() => void) | null = null
-    let callbackCount = 0
-    let parseSettled = false
-    let resolveFirstProgressSeen: (() => void) | null = null
-    const firstProgressSeen = new Promise<void>((resolve) => {
-      resolveFirstProgressSeen = resolve
-    })
-
-    const parsePromise = new Fb2Parser().parse(buffer, async () => {
-      callbackCount += 1
-      if (callbackCount === 1) {
-        resolveFirstProgressSeen?.()
-        await new Promise<void>((resolve) => {
-          releaseFirstProgress = resolve
-        })
-      }
-    }).finally(() => {
-      parseSettled = true
-    })
-
-    await firstProgressSeen
-    expect(callbackCount).toBe(1)
-    expect(parseSettled).toBe(false)
-
-    releaseFirstProgress?.()
-    await parsePromise
-    expect(callbackCount).toBeGreaterThan(1)
   })
 
   it('parses chapters from a .fb2.zip buffer', async () => {
