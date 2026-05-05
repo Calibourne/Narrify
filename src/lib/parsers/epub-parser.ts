@@ -1,7 +1,7 @@
 import JSZip from 'jszip'
 import * as cheerio from 'cheerio'
 import { XMLParser } from 'fast-xml-parser'
-import { normalizeParagraphs } from './normalizer'
+import { normalizeParagraphs, splitLongParagraphs } from './normalizer'
 import type { BookParser, Chapter } from './types'
 
 const xmlParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' })
@@ -66,7 +66,7 @@ export class EpubParser implements BookParser {
         const rawParagraphs = $('p')
           .map((_, el) => $(el).text())
           .get()
-        const paragraphs = normalizeParagraphs(rawParagraphs)
+        const paragraphs = splitLongParagraphs(normalizeParagraphs(rawParagraphs))
         if (paragraphs.length > 0) {
           chapters.push({ id: `chapter-${order}`, title, paragraphs, order })
           order++

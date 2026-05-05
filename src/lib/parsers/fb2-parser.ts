@@ -1,6 +1,6 @@
 import { SaxesParser } from 'saxes'
 import JSZip from 'jszip'
-import { normalizeParagraphs } from './normalizer'
+import { normalizeParagraphs, splitLongParagraphs } from './normalizer'
 import type { BookParser, Chapter } from './types'
 
 interface RawSection {
@@ -159,7 +159,7 @@ export class Fb2Parser implements BookParser {
       for (const section of topSections) {
         const rawParagraphs =
           section.paragraphs.length > 0 ? section.paragraphs : collectAllParagraphs(section.children)
-        const paragraphs = normalizeParagraphs(rawParagraphs)
+        const paragraphs = splitLongParagraphs(normalizeParagraphs(rawParagraphs))
         if (paragraphs.length > 0) {
           chapters.push({
             id: `chapter-${order}`,
@@ -171,7 +171,7 @@ export class Fb2Parser implements BookParser {
         }
       }
     } else {
-      const rawParagraphs = normalizeParagraphs(bodyParagraphs)
+      const rawParagraphs = splitLongParagraphs(normalizeParagraphs(bodyParagraphs))
       const chunks = chunkParagraphs(rawParagraphs, 24)
       for (const chunk of chunks) {
         if (chunk.length > 0) {
