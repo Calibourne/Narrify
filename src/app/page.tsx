@@ -6,6 +6,7 @@ import ThemeToggle from '@/components/ThemeToggle'
 import UploadZone from '@/components/UploadZone'
 import StatsBadge from '@/components/StatsBadge'
 import ChapterList from '@/components/ChapterList'
+import SynthesisPanel from '@/components/SynthesisPanel'
 import { deriveBuildVisuals } from '@/lib/buildSlug'
 import styles from './page.module.css'
 
@@ -117,6 +118,7 @@ export default function Home() {
             <>
               <StatsBadge chapters={chapters} />
               <ChapterList chapters={chapters} />
+              <SynthesisPanel chapters={chapters} />
             </>
           )}
         </main>

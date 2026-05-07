@@ -7,6 +7,22 @@ vi.mock('@/lib/parsers', () => ({
   selectParser: vi.fn(),
 }))
 
+vi.mock('@/hooks/useSynthesis', () => ({
+  useSynthesis: vi.fn(() => ({
+    phase: 'idle',
+    chapterLocales: {},
+    voicesByLocale: {},
+    selectedVoices: {},
+    setVoice: vi.fn(),
+    chapterAudios: {},
+    progress: { done: 0, total: 0 },
+    error: null,
+    detect: vi.fn(),
+    startSynthesis: vi.fn(),
+    downloadZip: vi.fn(),
+  })),
+}))
+
 import { selectParser } from '@/lib/parsers'
 
 afterEach(() => {
@@ -33,6 +49,21 @@ test('shows error message when parser throws', async () => {
 
   await waitFor(() => {
     expect(screen.getByText('File is corrupted')).toBeInTheDocument()
+  })
+})
+
+test('shows SynthesisPanel after book is parsed', async () => {
+  vi.mocked(selectParser).mockReturnValue({
+    parse: async () => [
+      { id: 'ch-0', title: 'Chapter One', paragraphs: ['Hello.'], order: 0 },
+    ],
+  })
+
+  renderAndSelectFile('sample.epub')
+  fireEvent.click(screen.getByRole('button', { name: 'Parse Book' }))
+
+  await waitFor(() => {
+    expect(screen.getByRole('button', { name: /generate audio/i })).toBeInTheDocument()
   })
 })
 
