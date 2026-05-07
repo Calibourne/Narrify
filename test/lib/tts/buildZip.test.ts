@@ -56,4 +56,21 @@ describe('buildZip', () => {
     expect(zip.file('1-introduction.mp3')).not.toBeNull()
     expect(zip.file('2-chapter-one.mp3')).toBeNull()
   })
+
+  it('zero-pads filenames to the same width for 10+ chapters', async () => {
+    const bigChapters: Chapter[] = Array.from({ length: 10 }, (_, i) => ({
+      id: `ch-${i}`,
+      title: `Chapter ${i}`,
+      paragraphs: [],
+      order: i,
+    }))
+    const audios = new Map<string, Uint8Array>([
+      ['ch-0', new Uint8Array([1])],
+      ['ch-9', new Uint8Array([2])],
+    ])
+    const blob = await buildZip(bigChapters, audios)
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer())
+    expect(zip.file('01-chapter-0.mp3')).not.toBeNull()
+    expect(zip.file('10-chapter-9.mp3')).not.toBeNull()
+  })
 })
