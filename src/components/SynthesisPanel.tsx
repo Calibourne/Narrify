@@ -34,7 +34,7 @@ export default function SynthesisPanel({ chapters }: Props) {
   }
 
   if (phase === 'error') {
-    return <p className={styles.error}>{error}</p>
+    return <p className={styles.error} role="alert">{error}</p>
   }
 
   if (phase === 'selecting') {
@@ -62,14 +62,14 @@ export default function SynthesisPanel({ chapters }: Props) {
 
   return (
     <div className={styles.panel}>
-      <p className={styles.progress}>{progress.done}/{progress.total} chapters</p>
+      <p className={styles.progress} role="status">{progress.done}/{progress.total} chapters</p>
       {chapters.map((ch) => {
         const audio = chapterAudios[ch.id]
         return (
           <div key={ch.id} className={styles.chapterRow}>
             <span className={styles.chapterTitle}>{ch.title ?? ch.id}</span>
             {audio?.status === 'done' && (
-              <audio controls src={audio.blobUrl} className={styles.player} />
+              <audio controls src={audio.blobUrl} className={styles.player} aria-label={`Audio for ${ch.title ?? ch.id}`} />
             )}
             {audio?.status === 'synthesizing' && (
               <span className={styles.synthesizing}>Synthesizing…</span>
