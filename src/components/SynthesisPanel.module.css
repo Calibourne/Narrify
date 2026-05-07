@@ -129,3 +129,13 @@
 .ghostBtn:hover {
   background: var(--hover-bg, rgba(0, 0, 0, 0.05));
 }
+
+.timerRow {
+  font-size: 0.8rem;
+  color: var(--text-muted, #888);
+}
+
+.eta {
+  font-size: 0.8rem;
+  color: var(--text-muted, #888);
+}

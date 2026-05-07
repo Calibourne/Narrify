@@ -6,6 +6,7 @@ import VoicePicker from '@/components/VoicePicker'
 import type { Chapter } from '@/lib/parsers/types'
 import { LOCALE_OPTIONS } from '@/lib/tts/langMap'
 import styles from './SynthesisPanel.module.css'
+import { formatElapsed, formatEta } from '@/lib/tts/formatTime'
 
 type Props = { chapters: Chapter[] }
 
@@ -24,6 +25,18 @@ export default function SynthesisPanel({ chapters }: Props) {
     synthesizeWithLocale,
     downloadZip,
   } = useSynthesis(chapters)
+
+  const [elapsed, setElapsed] = useState(0)
+
+  useEffect(() => {
+    if (phase !== 'synthesizing') return
+    const start = Date.now()
+    setElapsed(0)
+    const id = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - start) / 1000))
+    }, 1000)
+    return () => clearInterval(id)
+  }, [phase])
 
   const [idleLocale, setIdleLocale] = useState('en-US')
   const [idleVoices, setIdleVoices] = useState<Voice[]>([])
@@ -120,6 +133,16 @@ export default function SynthesisPanel({ chapters }: Props) {
         <span className={styles.progressLabel} role="status">
           {progress.done} / {progress.total} segments
         </span>
+        <span className={styles.timerRow}>
+          {phase === 'done'
+            ? `Done in ${formatElapsed(elapsed)}`
+            : `Elapsed: ${formatElapsed(elapsed)}`}
+        </span>
+        {phase === 'synthesizing' && formatEta(elapsed, progress.done, progress.total) && (
+          <span className={styles.eta}>
+            {formatEta(elapsed, progress.done, progress.total)}
+          </span>
+        )}
       </div>
       {chapters.map((ch) => {
         const audio = chapterAudios[ch.id]
