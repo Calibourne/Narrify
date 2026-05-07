@@ -63,6 +63,14 @@ export function useSynthesis(chapters: Chapter[]) {
   }, [])
 
   const startSynthesis = useCallback(async () => {
+    // Revoke any existing blob URLs before starting fresh
+    setChapterAudios((prev) => {
+      for (const audio of Object.values(prev)) {
+        if (audio.blobUrl) URL.revokeObjectURL(audio.blobUrl)
+      }
+      return {}
+    })
+
     setPhase('synthesizing')
     setProgress({ done: 0, total: chapters.length })
     audioBuffers.current.clear()
