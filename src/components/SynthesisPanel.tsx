@@ -101,7 +101,7 @@ export default function SynthesisPanel({ chapters }: Props) {
             />
           )
         })}
-        <button onClick={startSynthesis} className={styles.btn}>
+        <button onClick={() => startSynthesis()} className={styles.btn}>
           Start Synthesis
         </button>
       </div>

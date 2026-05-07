@@ -27,6 +27,7 @@ const ISO_TO_BCP47: Record<string, string> = {
   hun: 'hu-HU',
   ukr: 'uk-UA',
   cat: 'ca-ES',
+  heb: 'he-IL',
 }
 
 const FALLBACK = 'en-US'
@@ -64,6 +65,7 @@ export const LOCALE_LABELS: Record<string, string> = {
   'hu-HU': 'Hungarian',
   'uk-UA': 'Ukrainian',
   'ca-ES': 'Catalan',
+  'he-IL': 'Hebrew',
 }
 
 export const LOCALE_OPTIONS = Object.entries(LOCALE_LABELS).map(([code, label]) => ({ code, label }))
