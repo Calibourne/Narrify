@@ -35,7 +35,10 @@ export default function SynthesisPanel({ chapters }: Props) {
     const id = setInterval(() => {
       setElapsed(Math.floor((Date.now() - start) / 1000))
     }, 1000)
-    return () => clearInterval(id)
+    return () => {
+      clearInterval(id)
+      setElapsed(Math.floor((Date.now() - start) / 1000))
+    }
   }, [phase])
 
   const [idleLocale, setIdleLocale] = useState('en-US')
@@ -137,12 +140,16 @@ export default function SynthesisPanel({ chapters }: Props) {
         <span className={styles.progressLabel} role="status">
           {progress.done} / {progress.total} segments
         </span>
-        <span className={styles.timerRow}>
-          {phase === 'done'
-            ? `Done in ${formatElapsed(elapsed)}`
-            : `Elapsed: ${formatElapsed(elapsed)}`}
-        </span>
-        {etaLabel && <span className={styles.eta}>{etaLabel}</span>}
+        {(phase === 'synthesizing' || phase === 'done') && (
+          <>
+            <span className={styles.timerRow}>
+              {phase === 'done'
+                ? `Done in ${formatElapsed(elapsed)}`
+                : `Elapsed: ${formatElapsed(elapsed)}`}
+            </span>
+            {etaLabel && <span className={styles.eta}>{etaLabel}</span>}
+          </>
+        )}
       </div>
       {chapters.map((ch) => {
         const audio = chapterAudios[ch.id]
