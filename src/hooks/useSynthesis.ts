@@ -92,7 +92,7 @@ export function useSynthesis(chapters: Chapter[]) {
         [ch.id]: { buffer: new Uint8Array(), blobUrl: '', status: 'synthesizing' },
       }))
 
-      let buffer: Uint8Array | null = null
+      let buffer: Uint8Array<ArrayBuffer> | null = null
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
           const res = await fetch('/api/synthesize/chapter', {
