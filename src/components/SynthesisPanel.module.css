@@ -63,3 +63,37 @@
   font-size: 0.8rem;
   color: #c00;
 }
+
+.localeRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.select {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border, #ddd);
+  background: var(--bg, #fff);
+  color: var(--fg, inherit);
+  font-size: 0.875rem;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.ghostBtn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border, #ddd);
+  background: transparent;
+  color: var(--fg-muted, #666);
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ghostBtn:hover {
+  background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}

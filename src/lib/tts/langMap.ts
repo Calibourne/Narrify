@@ -34,3 +34,36 @@ const FALLBACK = 'en-US'
 export function getLocale(iso639_3: string): string {
   return ISO_TO_BCP47[iso639_3] ?? FALLBACK
 }
+
+export const LOCALE_LABELS: Record<string, string> = {
+  'en-US': 'English (US)',
+  'ja-JP': 'Japanese',
+  'fr-FR': 'French',
+  'de-DE': 'German',
+  'es-ES': 'Spanish',
+  'it-IT': 'Italian',
+  'pt-BR': 'Portuguese (BR)',
+  'ru-RU': 'Russian',
+  'zh-CN': 'Chinese (Simplified)',
+  'ko-KR': 'Korean',
+  'ar-SA': 'Arabic',
+  'nl-NL': 'Dutch',
+  'pl-PL': 'Polish',
+  'sv-SE': 'Swedish',
+  'nb-NO': 'Norwegian',
+  'da-DK': 'Danish',
+  'fi-FI': 'Finnish',
+  'tr-TR': 'Turkish',
+  'hi-IN': 'Hindi',
+  'vi-VN': 'Vietnamese',
+  'th-TH': 'Thai',
+  'id-ID': 'Indonesian',
+  'ms-MY': 'Malay',
+  'cs-CZ': 'Czech',
+  'ro-RO': 'Romanian',
+  'hu-HU': 'Hungarian',
+  'uk-UA': 'Ukrainian',
+  'ca-ES': 'Catalan',
+}
+
+export const LOCALE_OPTIONS = Object.entries(LOCALE_LABELS).map(([code, label]) => ({ code, label }))

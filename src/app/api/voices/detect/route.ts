@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { franc } from 'franc'
+import { francAll } from 'franc'
 import { VoicesManager } from 'edge-tts-universal'
 import { getLocale } from '@/lib/tts/langMap'
 
 type ChapterSample = { id: string; sample: string }
+
+const MIN_CONFIDENCE = 0.5
 
 export async function POST(req: NextRequest) {
   let body: { chapters?: ChapterSample[] }
@@ -22,8 +24,9 @@ export async function POST(req: NextRequest) {
     const localeSet = new Set<string>()
 
     for (const { id, sample } of body.chapters) {
-      const iso = franc(sample, { minLength: 20 })
-      const locale = getLocale(iso)
+      const results = francAll(sample, { minLength: 20 })
+      const [iso, score] = results[0] ?? ['und', 0]
+      const locale = score >= MIN_CONFIDENCE ? getLocale(iso) : 'en-US'
       chapterLocales[id] = locale
       localeSet.add(locale)
     }

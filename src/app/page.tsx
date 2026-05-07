@@ -105,6 +105,10 @@ export default function Home() {
             {uploading ? 'Parsing…' : 'Parse Book'}
           </button>
 
+          {status === 'success' && chapters.length > 0 && (
+            <SynthesisPanel chapters={chapters} />
+          )}
+
         </aside>
 
         <main className={styles.right}>
@@ -118,7 +122,6 @@ export default function Home() {
             <>
               <StatsBadge chapters={chapters} />
               <ChapterList chapters={chapters} />
-              <SynthesisPanel chapters={chapters} />
             </>
           )}
         </main>

@@ -1,7 +1,10 @@
 'use client'
+import { useState, useEffect } from 'react'
 import { useSynthesis } from '@/hooks/useSynthesis'
+import type { Voice } from '@/hooks/useSynthesis'
 import VoicePicker from '@/components/VoicePicker'
 import type { Chapter } from '@/lib/parsers/types'
+import { LOCALE_OPTIONS } from '@/lib/tts/langMap'
 import styles from './SynthesisPanel.module.css'
 
 type Props = { chapters: Chapter[] }
@@ -18,14 +21,59 @@ export default function SynthesisPanel({ chapters }: Props) {
     error,
     detect,
     startSynthesis,
+    synthesizeWithLocale,
     downloadZip,
   } = useSynthesis(chapters)
 
+  const [idleLocale, setIdleLocale] = useState('en-US')
+  const [idleVoices, setIdleVoices] = useState<Voice[]>([])
+  const [idleVoice, setIdleVoice] = useState('')
+
+  useEffect(() => {
+    fetch(`/api/voices?locale=${idleLocale}`)
+      .then((r) => r.json())
+      .then((voices: Voice[]) => {
+        setIdleVoices(voices)
+        setIdleVoice(voices[0]?.ShortName ?? '')
+      })
+      .catch(() => {})
+  }, [idleLocale])
+
   if (phase === 'idle') {
     return (
-      <button onClick={detect} className={styles.btn}>
-        Generate Audio
-      </button>
+      <div className={styles.panel}>
+        <div className={styles.localeRow}>
+          <select
+            className={styles.select}
+            value={idleLocale}
+            onChange={(e) => setIdleLocale(e.target.value)}
+            aria-label="Language"
+          >
+            {LOCALE_OPTIONS.map(({ code, label }) => (
+              <option key={code} value={code}>{label}</option>
+            ))}
+          </select>
+          <button onClick={detect} className={styles.ghostBtn}>Auto-detect</button>
+        </div>
+        <select
+          className={styles.select}
+          value={idleVoice}
+          onChange={(e) => setIdleVoice(e.target.value)}
+          disabled={idleVoices.length === 0}
+          aria-label="Voice"
+        >
+          {idleVoices.map((v) => (
+            <option key={v.ShortName} value={v.ShortName}>{v.FriendlyName}</option>
+          ))}
+        </select>
+        <button
+          onClick={() => synthesizeWithLocale(idleLocale, idleVoice)}
+          disabled={!idleVoice}
+          className={styles.btn}
+        >
+          Generate Audio
+        </button>
+      </div>
     )
   }
 

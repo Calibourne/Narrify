@@ -43,7 +43,7 @@ export function useSynthesis(chapters: Chapter[]) {
     try {
       const samples = chapters.map((ch) => ({
         id: ch.id,
-        sample: ch.paragraphs.slice(0, 3).join(' ').slice(0, 500),
+        sample: ch.paragraphs.join(' ').slice(0, 3000),
       }))
       const res = await fetch('/api/voices/detect', {
         method: 'POST',
@@ -70,8 +70,10 @@ export function useSynthesis(chapters: Chapter[]) {
     setSelectedVoices((prev) => ({ ...prev, [locale]: voiceName }))
   }, [])
 
-  const startSynthesis = useCallback(async () => {
-    // Revoke any existing blob URLs before starting fresh
+  const startSynthesis = useCallback(async (
+    localesMap: Record<string, string> = chapterLocales,
+    voicesMap: Record<string, string> = selectedVoices,
+  ) => {
     setChapterAudios((prev) => {
       for (const audio of Object.values(prev)) {
         if (audio.blobUrl) URL.revokeObjectURL(audio.blobUrl)
@@ -85,7 +87,7 @@ export function useSynthesis(chapters: Chapter[]) {
 
     for (let i = 0; i < chapters.length; i++) {
       const ch = chapters[i]
-      const voice = selectedVoices[chapterLocales[ch.id]] ?? 'en-US-AriaNeural'
+      const voice = voicesMap[localesMap[ch.id]] ?? 'en-US-AriaNeural'
 
       setChapterAudios((prev) => ({
         ...prev,
@@ -139,6 +141,11 @@ export function useSynthesis(chapters: Chapter[]) {
     URL.revokeObjectURL(url)
   }, [chapters])
 
+  const synthesizeWithLocale = useCallback(async (locale: string, voice: string) => {
+    const localesMap = Object.fromEntries(chapters.map((ch) => [ch.id, locale]))
+    await startSynthesis(localesMap, { [locale]: voice })
+  }, [chapters, startSynthesis])
+
   return {
     phase,
     chapterLocales,
@@ -150,6 +157,7 @@ export function useSynthesis(chapters: Chapter[]) {
     error,
     detect,
     startSynthesis,
+    synthesizeWithLocale,
     downloadZip,
   }
 }
