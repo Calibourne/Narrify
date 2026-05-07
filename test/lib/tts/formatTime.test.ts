@@ -27,6 +27,11 @@ describe('formatEta', () => {
     const result = formatEta(10, 5, 6, 0)
     expect(result).toMatch(/<1 min/)
   })
+  it('shows <1 min when 45 seconds remain', () => {
+    // 45s elapsed, 1 of 2 done → 1 remaining × 45s = 45s remaining
+    const result = formatEta(45, 1, 2, 0)
+    expect(result).toMatch(/<1 min/)
+  })
   it('returns null when all segments are done', () => {
     expect(formatEta(60, 10, 10, 0)).toBeNull()
   })

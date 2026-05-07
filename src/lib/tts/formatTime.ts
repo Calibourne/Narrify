@@ -15,8 +15,7 @@ export function formatEta(
   const remaining = Math.round(secsPerSegment * (total - done))
   const completesAt = new Date(now + remaining * 1000)
   const hhmm = completesAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  const mins = Math.round(remaining / 60)
-  return mins < 1
+  return remaining < 60
     ? `Will complete at ${hhmm} (<1 min)`
-    : `Will complete at ${hhmm} (~${mins} min)`
+    : `Will complete at ${hhmm} (~${Math.round(remaining / 60)} min)`
 }
