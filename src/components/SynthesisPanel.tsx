@@ -110,7 +110,17 @@ export default function SynthesisPanel({ chapters }: Props) {
 
   return (
     <div className={styles.panel}>
-      <p className={styles.progress} role="status">{progress.done}/{progress.total} chapters</p>
+      <div className={styles.progressWrapper}>
+        <progress
+          className={styles.progressBar}
+          value={progress.done}
+          max={progress.total}
+          aria-label="Synthesis progress"
+        />
+        <span className={styles.progressLabel} role="status">
+          {progress.done} / {progress.total} segments
+        </span>
+      </div>
       {chapters.map((ch) => {
         const audio = chapterAudios[ch.id]
         return (

@@ -3,6 +3,45 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Chapter } from '@/lib/parsers/types'
 import { buildZip } from '@/lib/tts/buildZip'
 
+const MAX_SEGMENT_CHARS = 10_000
+
+function splitIntoEqualChunks(paragraphs: string[]): string[][] {
+  const totalChars = paragraphs.reduce((sum, p) => sum + p.length, 0)
+  if (totalChars === 0) return [paragraphs]
+
+  const n = Math.ceil(totalChars / MAX_SEGMENT_CHARS)
+  if (n === 1) return [paragraphs]
+
+  const targetSize = totalChars / n
+  const chunks: string[][] = []
+  let current: string[] = []
+  let currentChars = 0
+
+  for (const p of paragraphs) {
+    if (current.length > 0 && currentChars >= targetSize && chunks.length < n - 1) {
+      chunks.push(current)
+      current = []
+      currentChars = 0
+    }
+    current.push(p)
+    currentChars += p.length
+  }
+  if (current.length > 0) chunks.push(current)
+
+  return chunks
+}
+
+function concatBuffers(buffers: Uint8Array[]): Uint8Array {
+  const total = buffers.reduce((sum, b) => sum + b.length, 0)
+  const out = new Uint8Array(total)
+  let offset = 0
+  for (const b of buffers) {
+    out.set(b, offset)
+    offset += b.length
+  }
+  return out
+}
+
 export type Voice = {
   ShortName: string
   FriendlyName: string
@@ -81,36 +120,58 @@ export function useSynthesis(chapters: Chapter[]) {
       return {}
     })
 
+    const chapterChunks = chapters.map((ch) => splitIntoEqualChunks(ch.paragraphs))
+    const totalSegments = chapterChunks.reduce((sum, chunks) => sum + chunks.length, 0)
+
     setPhase('synthesizing')
-    setProgress({ done: 0, total: chapters.length })
+    setProgress({ done: 0, total: totalSegments })
     audioBuffers.current.clear()
+
+    let segmentsDone = 0
 
     for (let i = 0; i < chapters.length; i++) {
       const ch = chapters[i]
       const voice = voicesMap[localesMap[ch.id]] ?? 'en-US-AriaNeural'
+      const chunks = chapterChunks[i]
 
       setChapterAudios((prev) => ({
         ...prev,
         [ch.id]: { buffer: new Uint8Array(), blobUrl: '', status: 'synthesizing' },
       }))
 
-      let buffer: Uint8Array<ArrayBuffer> | null = null
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          const res = await fetch('/api/synthesize/chapter', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ paragraphs: ch.paragraphs, voice }),
-          })
-          if (!res.ok) throw new Error(`HTTP ${res.status}`)
-          buffer = new Uint8Array(await res.arrayBuffer())
-          break
-        } catch {
-          if (attempt === 1) break
+      const segmentBuffers: Uint8Array[] = []
+      let chapterFailed = false
+
+      for (const chunk of chunks) {
+        let buffer: Uint8Array | null = null
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const res = await fetch('/api/synthesize/chapter', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ paragraphs: chunk, voice }),
+            })
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            buffer = new Uint8Array(await res.arrayBuffer())
+            break
+          } catch {
+            if (attempt === 1) break
+          }
         }
+
+        if (buffer) {
+          segmentBuffers.push(buffer)
+        } else {
+          chapterFailed = true
+          break
+        }
+
+        segmentsDone++
+        setProgress({ done: segmentsDone, total: totalSegments })
       }
 
-      if (buffer) {
+      if (!chapterFailed && segmentBuffers.length > 0) {
+        const buffer = concatBuffers(segmentBuffers)
         const blob = new Blob([buffer], { type: 'audio/mpeg' })
         const blobUrl = URL.createObjectURL(blob)
         audioBuffers.current.set(ch.id, buffer)
@@ -119,13 +180,13 @@ export function useSynthesis(chapters: Chapter[]) {
           [ch.id]: { buffer, blobUrl, status: 'done' },
         }))
       } else {
+        segmentsDone += chunks.length - segmentBuffers.length
+        setProgress({ done: segmentsDone, total: totalSegments })
         setChapterAudios((prev) => ({
           ...prev,
           [ch.id]: { buffer: new Uint8Array(), blobUrl: '', status: 'failed' },
         }))
       }
-
-      setProgress({ done: i + 1, total: chapters.length })
     }
 
     setPhase('done')

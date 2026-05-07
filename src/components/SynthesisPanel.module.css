@@ -22,7 +22,7 @@
 
 .status {
   font-size: 0.9rem;
-  color: var(--fg-muted, #666);
+  color: var(--text-muted, #666);
 }
 
 .error {
@@ -30,9 +30,41 @@
   color: #c00;
 }
 
-.progress {
-  font-size: 0.85rem;
-  font-weight: 600;
+.progressWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  appearance: none;
+  border: none;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--surface-subtle, #f0f0f0);
+}
+
+.progressBar::-webkit-progress-bar {
+  background: var(--surface-subtle, #f0f0f0);
+  border-radius: 3px;
+}
+
+.progressBar::-webkit-progress-value {
+  background: var(--accent, #0070f3);
+  border-radius: 3px;
+  transition: width 0.2s ease;
+}
+
+.progressBar::-moz-progress-bar {
+  background: var(--accent, #0070f3);
+  border-radius: 3px;
+}
+
+.progressLabel {
+  font-size: 0.8rem;
+  color: var(--text-muted, #888);
 }
 
 .chapterRow {
@@ -56,7 +88,7 @@
 
 .synthesizing {
   font-size: 0.8rem;
-  color: var(--fg-muted, #888);
+  color: var(--text-muted, #888);
 }
 
 .failed {
@@ -75,8 +107,8 @@
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid var(--border, #ddd);
-  background: var(--bg, #fff);
-  color: var(--fg, inherit);
+  background: var(--surface, #fff);
+  color: var(--foreground, inherit);
   font-size: 0.875rem;
   cursor: pointer;
   min-width: 0;
@@ -87,7 +119,7 @@
   border-radius: 6px;
   border: 1px solid var(--border, #ddd);
   background: transparent;
-  color: var(--fg-muted, #666);
+  color: var(--text-muted, #666);
   font-size: 0.8rem;
   cursor: pointer;
   white-space: nowrap;
