@@ -31,9 +31,9 @@ function splitIntoEqualChunks(paragraphs: string[]): string[][] {
   return chunks
 }
 
-function concatBuffers(buffers: Uint8Array[]): Uint8Array {
+function concatBuffers(buffers: Uint8Array[]): Uint8Array<ArrayBuffer> {
   const total = buffers.reduce((sum, b) => sum + b.length, 0)
-  const out = new Uint8Array(total)
+  const out = new Uint8Array(new ArrayBuffer(total))
   let offset = 0
   for (const b of buffers) {
     out.set(b, offset)
