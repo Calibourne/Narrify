@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Chapter } from '@/lib/parsers/types'
 import { buildZip } from '@/lib/tts/buildZip'
 
@@ -29,6 +29,14 @@ export function useSynthesis(chapters: Chapter[]) {
   const [progress, setProgress] = useState({ done: 0, total: 0 })
   const [error, setError] = useState<string | null>(null)
   const audioBuffers = useRef(new Map<string, Uint8Array>())
+
+  useEffect(() => {
+    return () => {
+      for (const audio of Object.values(chapterAudios)) {
+        if (audio.blobUrl) URL.revokeObjectURL(audio.blobUrl)
+      }
+    }
+  }, [chapterAudios])
 
   const detect = useCallback(async () => {
     setPhase('detecting')
