@@ -3,7 +3,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Chapter } from '@/lib/parsers/types'
 import { buildZip } from '@/lib/tts/buildZip'
 
-const MAX_SEGMENT_CHARS = 10_000
+const MAX_SEGMENT_CHARS = 2_500
 
 function splitIntoEqualChunks(paragraphs: string[]): string[][] {
   const totalChars = paragraphs.reduce((sum, p) => sum + p.length, 0)
