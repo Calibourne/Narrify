@@ -1,0 +1,65 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: var(--accent, #0070f3);
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.status {
+  font-size: 0.9rem;
+  color: var(--fg-muted, #666);
+}
+
+.error {
+  font-size: 0.9rem;
+  color: #c00;
+}
+
+.progress {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.chapterRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.chapterTitle {
+  flex: 1;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player {
+  height: 28px;
+}
+
+.synthesizing {
+  font-size: 0.8rem;
+  color: var(--fg-muted, #888);
+}
+
+.failed {
+  font-size: 0.8rem;
+  color: #c00;
+}
