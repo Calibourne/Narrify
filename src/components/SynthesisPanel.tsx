@@ -121,6 +121,10 @@ export default function SynthesisPanel({ chapters }: Props) {
     )
   }
 
+  const etaLabel = phase === 'synthesizing'
+    ? formatEta(elapsed, progress.done, progress.total)
+    : null
+
   return (
     <div className={styles.panel}>
       <div className={styles.progressWrapper}>
@@ -138,11 +142,7 @@ export default function SynthesisPanel({ chapters }: Props) {
             ? `Done in ${formatElapsed(elapsed)}`
             : `Elapsed: ${formatElapsed(elapsed)}`}
         </span>
-        {phase === 'synthesizing' && formatEta(elapsed, progress.done, progress.total) && (
-          <span className={styles.eta}>
-            {formatEta(elapsed, progress.done, progress.total)}
-          </span>
-        )}
+        {etaLabel && <span className={styles.eta}>{etaLabel}</span>}
       </div>
       {chapters.map((ch) => {
         const audio = chapterAudios[ch.id]
