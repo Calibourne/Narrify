@@ -6,9 +6,10 @@ vi.mock('edge-tts-universal', () => {
     audio: { arrayBuffer: vi.fn(async () => new ArrayBuffer(64)) },
   }))
   return {
-    EdgeTTS: vi.fn(function (this: any, text: string, voice: string) {
+    EdgeTTS: vi.fn(function (this: any, text: string, voice: string, opts?: object) {
       this._text = text
       this._voice = voice
+      this._opts = opts
       this.synthesize = mockSynthesize
     }),
   }
@@ -52,6 +53,33 @@ describe('POST /api/synthesize/chapter', () => {
     expect(vi.mocked(EdgeTTS)).toHaveBeenCalledWith(
       'Para one.\n\nPara two.',
       'en-US-AriaNeural',
+      { rate: '+0%', pitch: '+0Hz' },
+    )
+  })
+
+  it('forwards rate and pitch to EdgeTTS when provided', async () => {
+    await POST(makeRequest({
+      paragraphs: ['Hello.'],
+      voice: 'en-US-AriaNeural',
+      rate: '+25%',
+      pitch: '-5Hz',
+    }))
+    expect(vi.mocked(EdgeTTS)).toHaveBeenCalledWith(
+      'Hello.',
+      'en-US-AriaNeural',
+      { rate: '+25%', pitch: '-5Hz' },
+    )
+  })
+
+  it('defaults rate to +0% and pitch to +0Hz when omitted', async () => {
+    await POST(makeRequest({
+      paragraphs: ['Hello.'],
+      voice: 'en-US-AriaNeural',
+    }))
+    expect(vi.mocked(EdgeTTS)).toHaveBeenCalledWith(
+      'Hello.',
+      'en-US-AriaNeural',
+      { rate: '+0%', pitch: '+0Hz' },
     )
   })
 })

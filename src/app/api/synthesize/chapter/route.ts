@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { EdgeTTS } from 'edge-tts-universal'
 
 export async function POST(req: NextRequest) {
-  let body: { paragraphs?: string[]; voice?: string }
+  let body: { paragraphs?: string[]; voice?: string; rate?: string; pitch?: string }
   try {
     body = await req.json()
   } catch {
@@ -15,7 +15,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const text = body.paragraphs.join('\n\n')
-    const tts = new EdgeTTS(text, body.voice)
+    const rate = body.rate ?? '+0%'
+    const pitch = body.pitch ?? '+0Hz'
+    const tts = new EdgeTTS(text, body.voice, { rate, pitch })
     const result = await tts.synthesize()
     const mp3 = Buffer.from(await result.audio.arrayBuffer())
     return new NextResponse(mp3, {
