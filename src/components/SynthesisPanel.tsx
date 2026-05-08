@@ -21,6 +21,7 @@ export default function SynthesisPanel({ synthesis }: Props) {
     startSynthesis,
     synthesizeWithLocale,
     downloadZip,
+    cancel,
   } = synthesis
 
   const [elapsed, setElapsed] = useState(0)
@@ -91,11 +92,21 @@ export default function SynthesisPanel({ synthesis }: Props) {
   }
 
   if (phase === 'detecting') {
-    return <p className={styles.status}>Detecting languages…</p>
+    return (
+      <div className={styles.panel}>
+        <p className={styles.status}>Detecting languages…</p>
+        <button onClick={cancel} className={styles.ghostBtn}>Cancel</button>
+      </div>
+    )
   }
 
   if (phase === 'error') {
-    return <p className={styles.error} role="alert">{error}</p>
+    return (
+      <div className={styles.panel}>
+        <p className={styles.error} role="alert">{error}</p>
+        <button onClick={cancel} className={styles.ghostBtn}>Start Over</button>
+      </div>
+    )
   }
 
   if (phase === 'selecting') {
@@ -114,9 +125,12 @@ export default function SynthesisPanel({ synthesis }: Props) {
             />
           )
         })}
-        <button onClick={() => startSynthesis()} className={styles.btn}>
-          Start Synthesis
-        </button>
+        <div className={styles.buttonRow}>
+          <button onClick={() => startSynthesis()} className={styles.btn}>
+            Start Synthesis
+          </button>
+          <button onClick={cancel} className={styles.ghostBtn}>Cancel</button>
+        </div>
       </div>
     )
   }
@@ -148,11 +162,16 @@ export default function SynthesisPanel({ synthesis }: Props) {
           </>
         )}
       </div>
-      {phase === 'done' && (
-        <button onClick={downloadZip} className={styles.btn}>
-          Download ZIP
+      <div className={styles.buttonRow}>
+        {phase === 'done' && (
+          <button onClick={downloadZip} className={styles.btn}>
+            Download ZIP
+          </button>
+        )}
+        <button onClick={cancel} className={styles.ghostBtn}>
+          {phase === 'synthesizing' ? 'Abort' : 'Start Over'}
         </button>
-      )}
+      </div>
     </div>
   )
 }
