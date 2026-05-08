@@ -2,10 +2,11 @@ import { normalizeParagraphs, splitLongParagraphs } from './normalizer'
 import type { BookParser, Chapter } from './types'
 
 const HEADING_RE = /^(chapter|глава|часть|part|section)\s+(\d+|[ivxlcdm]+)/i
+// Roman numerals are matched loosely — any [ivxlcdm]+ word qualifies; intentional trade-off for brevity
 
 export class TxtParser implements BookParser {
   private filename: string
-  constructor(filename = 'text') { this.filename = filename }
+  constructor(filename: string) { this.filename = filename }
 
   async parse(buffer: Uint8Array): Promise<Chapter[]> {
     return parsePlainText(new TextDecoder().decode(buffer), this.filename)
@@ -34,7 +35,8 @@ export function parsePlainText(text: string, filename = 'Pasted text'): Chapter[
   }
   if (current) chunks.push(current)
 
-  if (headingFound) return toChapters(chunks)
+  if (headingFound)
+    return chunks.map((chunk, i) => toChapter(chunk.title, chunk.lines, i)).filter((ch) => ch.paragraphs.length > 0)
 
   // Pass 2: double-blank-line split
   const sections = text.split(/\n{2,}/).map((s) => s.trim()).filter((s) => s.length > 0)
@@ -46,12 +48,6 @@ export function parsePlainText(text: string, filename = 'Pasted text'): Chapter[
 
   // Pass 3: single chapter
   return [toChapter(title, lines, 0)].filter((ch) => ch.paragraphs.length > 0)
-}
-
-function toChapters(chunks: { title: string; lines: string[] }[]): Chapter[] {
-  return chunks
-    .map((chunk, i) => toChapter(chunk.title, chunk.lines, i))
-    .filter((ch) => ch.paragraphs.length > 0)
 }
 
 function toChapter(title: string, lines: string[], order: number): Chapter {
