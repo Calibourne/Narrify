@@ -28,8 +28,9 @@ export default function NarrationControls({ rate, pitch, onRateChange, onPitchCh
   return (
     <div className={styles.controls}>
       <div className={styles.row}>
-        <label className={styles.label}>Speed</label>
+        <label htmlFor="narration-speed" className={styles.label}>Speed</label>
         <input
+          id="narration-speed"
           type="range"
           min={-50}
           max={100}
@@ -42,8 +43,9 @@ export default function NarrationControls({ rate, pitch, onRateChange, onPitchCh
         <span className={styles.tag}>{speedLabel(rate)}</span>
       </div>
       <div className={styles.row}>
-        <label className={styles.label}>Pitch</label>
+        <label htmlFor="narration-pitch" className={styles.label}>Pitch</label>
         <input
+          id="narration-pitch"
           type="range"
           min={-20}
           max={20}

@@ -47,6 +47,16 @@ describe('NarrationControls', () => {
     expect(screen.getByText('Slightly Low')).toBeInTheDocument()
   })
 
+  it('shows Low pitch label when pitch is -15', () => {
+    render(<NarrationControls rate={0} pitch={-15} onRateChange={vi.fn()} onPitchChange={vi.fn()} />)
+    expect(screen.getByText('Low')).toBeInTheDocument()
+  })
+
+  it('shows Slightly High pitch label when pitch is 5', () => {
+    render(<NarrationControls rate={0} pitch={5} onRateChange={vi.fn()} onPitchChange={vi.fn()} />)
+    expect(screen.getByText('Slightly High')).toBeInTheDocument()
+  })
+
   it('calls onRateChange with numeric value when speed slider changes', () => {
     const onRateChange = vi.fn()
     render(<NarrationControls rate={0} pitch={0} onRateChange={onRateChange} onPitchChange={vi.fn()} />)
