@@ -47,6 +47,15 @@ export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl
     }
   }, [blobUrl])
 
+  function handleSeek(e: React.MouseEvent<HTMLSpanElement>) {
+    e.stopPropagation()
+    const a = audioRef.current
+    if (!a || !a.duration) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    a.currentTime = ratio * a.duration
+  }
+
   function togglePlay(e: React.MouseEvent) {
     e.stopPropagation()
     const a = audioRef.current
@@ -104,8 +113,10 @@ export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl
           )}
           <span className={styles.arrow}>{open ? '▲' : '▼'}</span>
         </span>
-        {playing && (
-          <span className={styles.progressRail} style={{ width: `${progress * 100}%` }} aria-hidden="true" />
+        {audioStatus === 'done' && duration > 0 && (
+          <span className={styles.progressRail} onClick={handleSeek} aria-hidden="true">
+            <span className={styles.progressRailFill} style={{ width: `${progress * 100}%` }} />
+          </span>
         )}
       </button>
       {open && (
