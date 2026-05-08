@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { selectParser } from '@/lib/parsers'
 import type { Chapter } from '@/lib/parsers/types'
+import { useSynthesis } from '@/hooks/useSynthesis'
 import ThemeToggle from '@/components/ThemeToggle'
 import UploadZone from '@/components/UploadZone'
 import StatsBadge from '@/components/StatsBadge'
@@ -23,6 +24,7 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null)
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const synthesis = useSynthesis(chapters)
 
   function toggleTheme() {
     setTheme((t) => {
@@ -106,7 +108,7 @@ export default function Home() {
           </button>
 
           {status === 'success' && chapters.length > 0 && (
-            <SynthesisPanel chapters={chapters} />
+            <SynthesisPanel synthesis={synthesis} />
           )}
 
         </aside>
@@ -121,7 +123,7 @@ export default function Home() {
           {status === 'success' && chapters.length > 0 && (
             <>
               <StatsBadge chapters={chapters} />
-              <ChapterList chapters={chapters} />
+              <ChapterList chapters={chapters} chapterAudios={synthesis.chapterAudios} />
             </>
           )}
         </main>

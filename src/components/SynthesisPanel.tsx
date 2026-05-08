@@ -1,30 +1,27 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useSynthesis } from '@/hooks/useSynthesis'
-import type { Voice } from '@/hooks/useSynthesis'
+import type { SynthesisResult, Voice } from '@/hooks/useSynthesis'
 import VoicePicker from '@/components/VoicePicker'
-import type { Chapter } from '@/lib/parsers/types'
 import { LOCALE_OPTIONS } from '@/lib/tts/langMap'
 import styles from './SynthesisPanel.module.css'
 import { formatElapsed, formatEta } from '@/lib/tts/formatTime'
 
-type Props = { chapters: Chapter[] }
+type Props = { synthesis: SynthesisResult }
 
-export default function SynthesisPanel({ chapters }: Props) {
+export default function SynthesisPanel({ synthesis }: Props) {
   const {
     phase,
     voicesByLocale,
     chapterLocales,
     selectedVoices,
     setVoice,
-    chapterAudios,
     progress,
     error,
     detect,
     startSynthesis,
     synthesizeWithLocale,
     downloadZip,
-  } = useSynthesis(chapters)
+  } = synthesis
 
   const [elapsed, setElapsed] = useState(0)
 
@@ -151,23 +148,6 @@ export default function SynthesisPanel({ chapters }: Props) {
           </>
         )}
       </div>
-      {chapters.map((ch) => {
-        const audio = chapterAudios[ch.id]
-        return (
-          <div key={ch.id} className={styles.chapterRow}>
-            <span className={styles.chapterTitle}>{ch.title ?? ch.id}</span>
-            {audio?.status === 'done' && (
-              <audio controls src={audio.blobUrl} className={styles.player} aria-label={`Audio for ${ch.title ?? ch.id}`} />
-            )}
-            {audio?.status === 'synthesizing' && (
-              <span className={styles.synthesizing}>Synthesizing…</span>
-            )}
-            {audio?.status === 'failed' && (
-              <span className={styles.failed}>Failed</span>
-            )}
-          </div>
-        )
-      })}
       {phase === 'done' && (
         <button onClick={downloadZip} className={styles.btn}>
           Download ZIP

@@ -7,6 +7,7 @@
 
 .header {
   width: 100%;
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -16,22 +17,85 @@
   cursor: pointer;
   text-align: left;
   color: var(--foreground);
+  overflow: hidden;
 }
 
 .header:hover {
   background: var(--surface-subtle);
 }
 
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.failedDot {
+  background: #e05555;
+}
+
 .title {
   font-size: 14px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .arrow {
   font-size: 10px;
   color: var(--text-muted);
   flex-shrink: 0;
-  margin-left: 8px;
+}
+
+.playBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.playBtn:hover {
+  opacity: 0.8;
+}
+
+.progressRail {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.1s linear;
 }
 
 .body {

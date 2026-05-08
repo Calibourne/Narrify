@@ -1,5 +1,26 @@
 .badge {
-  font-size: 13px;
-  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
   margin-bottom: 16px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.num {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.lbl {
+  color: var(--text-muted);
 }

@@ -59,6 +59,8 @@ export type ChapterAudio = {
 
 export type SynthesisPhase = 'idle' | 'detecting' | 'selecting' | 'synthesizing' | 'done' | 'error'
 
+export type SynthesisResult = ReturnType<typeof useSynthesis>
+
 export function useSynthesis(chapters: Chapter[]) {
   const [phase, setPhase] = useState<SynthesisPhase>('idle')
   const [chapterLocales, setChapterLocales] = useState<Record<string, string>>({})
