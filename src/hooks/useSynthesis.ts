@@ -151,7 +151,6 @@ export function useSynthesis(chapters: Chapter[]) {
 
     const controller = new AbortController()
     abortRef.current = controller
-    synthesizingRef.current = true
 
     const chapterChunks = chapters.map((ch) => splitIntoEqualChunks(ch.paragraphs))
     const totalSegments = chapterChunks.reduce((sum, chunks) => sum + chunks.length, 0)
@@ -163,6 +162,7 @@ export function useSynthesis(chapters: Chapter[]) {
     let segmentsDone = 0
 
     try {
+      synthesizingRef.current = true
       for (let i = 0; i < chapters.length; i++) {
         const ch = chapters[i]
         const voice = voicesMap[localesMap[ch.id]] ?? 'en-US-AriaNeural'
