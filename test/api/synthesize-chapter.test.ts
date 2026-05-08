@@ -82,4 +82,26 @@ describe('POST /api/synthesize/chapter', () => {
       { rate: '+0%', pitch: '+0Hz' },
     )
   })
+
+  it('returns 400 for invalid rate format', async () => {
+    const res = await POST(makeRequest({
+      paragraphs: ['Hello.'],
+      voice: 'en-US-AriaNeural',
+      rate: 'fast',
+    }))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/rate/)
+  })
+
+  it('returns 400 for invalid pitch format', async () => {
+    const res = await POST(makeRequest({
+      paragraphs: ['Hello.'],
+      voice: 'en-US-AriaNeural',
+      pitch: '5',
+    }))
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toMatch(/pitch/)
+  })
 })
