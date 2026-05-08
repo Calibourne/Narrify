@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
 vi.mock('franc', () => ({
-  franc: vi.fn(() => 'eng'),
+  francAll: vi.fn(() => [['eng', 0.9]]),
 }))
 
 vi.mock('edge-tts-universal', () => ({
@@ -16,7 +16,7 @@ vi.mock('edge-tts-universal', () => ({
   },
 }))
 
-import { franc } from 'franc'
+import { francAll } from 'franc'
 import { POST } from '@/app/api/voices/detect/route'
 
 function makeRequest(body: unknown) {
@@ -27,7 +27,7 @@ function makeRequest(body: unknown) {
   })
 }
 
-beforeEach(() => vi.mocked(franc).mockReturnValue('eng'))
+beforeEach(() => vi.mocked(francAll).mockReturnValue([['eng', 0.9]]))
 
 describe('POST /api/voices/detect', () => {
   it('returns chapterLocales keyed by chapter id', async () => {
@@ -48,7 +48,7 @@ describe('POST /api/voices/detect', () => {
   })
 
   it('falls back to en-US when franc returns und', async () => {
-    vi.mocked(franc).mockReturnValue('und')
+    vi.mocked(francAll).mockReturnValue([['und', 0.1]])
     const res = await POST(makeRequest({
       chapters: [{ id: 'ch-0', sample: 'xyz' }],
     }))
