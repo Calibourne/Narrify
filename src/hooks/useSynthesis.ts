@@ -69,6 +69,8 @@ export function useSynthesis(chapters: Chapter[]) {
   const [chapterAudios, setChapterAudios] = useState<Record<string, ChapterAudio>>({})
   const [progress, setProgress] = useState({ done: 0, total: 0 })
   const [error, setError] = useState<string | null>(null)
+  const [rate, setRate] = useState(0)
+  const [pitch, setPitch] = useState(0)
   const audioBuffers = useRef(new Map<string, Uint8Array>())
   const abortRef = useRef<AbortController | null>(null)
   const synthesizingRef = useRef(false)
@@ -95,6 +97,8 @@ export function useSynthesis(chapters: Chapter[]) {
     audioBuffers.current.clear()
     setProgress({ done: 0, total: 0 })
     setError(null)
+    setRate(0)
+    setPitch(0)
   }, [])
 
   const cancel = useCallback(() => {
@@ -183,7 +187,12 @@ export function useSynthesis(chapters: Chapter[]) {
               const res = await fetch('/api/synthesize/chapter', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ paragraphs: chunk, voice }),
+                body: JSON.stringify({
+                  paragraphs: chunk,
+                  voice,
+                  rate: `${rate >= 0 ? '+' : ''}${rate}%`,
+                  pitch: `${pitch >= 0 ? '+' : ''}${pitch}Hz`,
+                }),
                 signal: controller.signal,
               })
               if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -236,7 +245,7 @@ export function useSynthesis(chapters: Chapter[]) {
       synthesizingRef.current = false
       abortRef.current = null
     }
-  }, [chapters, selectedVoices, chapterLocales, resetState])
+  }, [chapters, selectedVoices, chapterLocales, resetState, rate, pitch])
 
   const downloadZip = useCallback(async () => {
     const blob = await buildZip(chapters, audioBuffers.current)
@@ -262,6 +271,10 @@ export function useSynthesis(chapters: Chapter[]) {
     chapterAudios,
     progress,
     error,
+    rate,
+    pitch,
+    setRate,
+    setPitch,
     detect,
     startSynthesis,
     synthesizeWithLocale,

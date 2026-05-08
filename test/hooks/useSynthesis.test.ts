@@ -110,4 +110,56 @@ describe('useSynthesis', () => {
     expect(result.current.chapterAudios['ch-0'].status).toBe('failed')
     expect(result.current.phase).toBe('done')
   })
+
+  it('exposes rate and pitch defaulting to 0', () => {
+    const { result } = renderHook(() => useSynthesis(chapters))
+    expect(result.current.rate).toBe(0)
+    expect(result.current.pitch).toBe(0)
+  })
+
+  it('setRate updates rate', () => {
+    const { result } = renderHook(() => useSynthesis(chapters))
+    act(() => { result.current.setRate(25) })
+    expect(result.current.rate).toBe(25)
+  })
+
+  it('setPitch updates pitch', () => {
+    const { result } = renderHook(() => useSynthesis(chapters))
+    act(() => { result.current.setPitch(-5) })
+    expect(result.current.pitch).toBe(-5)
+  })
+
+  it('cancel in idle resets rate and pitch to 0', () => {
+    const { result } = renderHook(() => useSynthesis(chapters))
+    act(() => { result.current.setRate(50) })
+    act(() => { result.current.setPitch(10) })
+    act(() => { result.current.cancel() })
+    expect(result.current.rate).toBe(0)
+    expect(result.current.pitch).toBe(0)
+  })
+
+  it('startSynthesis sends rate and pitch in fetch body', async () => {
+    const fetchCalls: Array<{ url: string; body: unknown }> = []
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+      fetchCalls.push({ url, body: init?.body ? JSON.parse(init.body as string) : null })
+      if (url.includes('voices/detect')) {
+        return { ok: true, json: async () => detectResponse }
+      }
+      return { ok: true, arrayBuffer: async () => new ArrayBuffer(100) }
+    }))
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:test'), revokeObjectURL: vi.fn() })
+
+    const { result } = renderHook(() => useSynthesis(chapters))
+    await act(async () => { result.current.detect() })
+    act(() => { result.current.setRate(20) })
+    act(() => { result.current.setPitch(-5) })
+    await act(async () => { result.current.startSynthesis() })
+
+    const synthesisCalls = fetchCalls.filter(c => c.url.includes('synthesize'))
+    expect(synthesisCalls.length).toBeGreaterThan(0)
+    for (const call of synthesisCalls) {
+      expect((call.body as any).rate).toBe('+20%')
+      expect((call.body as any).pitch).toBe('-5Hz')
+    }
+  })
 })
