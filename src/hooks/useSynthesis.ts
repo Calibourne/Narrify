@@ -70,6 +70,8 @@ export function useSynthesis(chapters: Chapter[]) {
   const [progress, setProgress] = useState({ done: 0, total: 0 })
   const [error, setError] = useState<string | null>(null)
   const audioBuffers = useRef(new Map<string, Uint8Array>())
+  const abortRef = useRef<AbortController | null>(null)
+  const synthesizingRef = useRef(false)
 
   useEffect(() => {
     return () => {
@@ -78,6 +80,31 @@ export function useSynthesis(chapters: Chapter[]) {
       }
     }
   }, [chapterAudios])
+
+  const resetState = useCallback(() => {
+    setPhase('idle')
+    setChapterLocales({})
+    setVoicesByLocale({})
+    setSelectedVoices({})
+    setChapterAudios((prev) => {
+      for (const audio of Object.values(prev)) {
+        if (audio.blobUrl) URL.revokeObjectURL(audio.blobUrl)
+      }
+      return {}
+    })
+    audioBuffers.current.clear()
+    setProgress({ done: 0, total: 0 })
+    setError(null)
+  }, [])
+
+  const cancel = useCallback(() => {
+    if (synthesizingRef.current) {
+      abortRef.current?.abort()
+      // AbortError catch in startSynthesis handles state cleanup
+    } else {
+      resetState()
+    }
+  }, [resetState])
 
   const detect = useCallback(async () => {
     setPhase('detecting')
@@ -122,6 +149,10 @@ export function useSynthesis(chapters: Chapter[]) {
       return {}
     })
 
+    const controller = new AbortController()
+    abortRef.current = controller
+    synthesizingRef.current = true
+
     const chapterChunks = chapters.map((ch) => splitIntoEqualChunks(ch.paragraphs))
     const totalSegments = chapterChunks.reduce((sum, chunks) => sum + chunks.length, 0)
 
@@ -131,68 +162,81 @@ export function useSynthesis(chapters: Chapter[]) {
 
     let segmentsDone = 0
 
-    for (let i = 0; i < chapters.length; i++) {
-      const ch = chapters[i]
-      const voice = voicesMap[localesMap[ch.id]] ?? 'en-US-AriaNeural'
-      const chunks = chapterChunks[i]
+    try {
+      for (let i = 0; i < chapters.length; i++) {
+        const ch = chapters[i]
+        const voice = voicesMap[localesMap[ch.id]] ?? 'en-US-AriaNeural'
+        const chunks = chapterChunks[i]
 
-      setChapterAudios((prev) => ({
-        ...prev,
-        [ch.id]: { buffer: new Uint8Array(), blobUrl: '', status: 'synthesizing' },
-      }))
+        setChapterAudios((prev) => ({
+          ...prev,
+          [ch.id]: { buffer: new Uint8Array(), blobUrl: '', status: 'synthesizing' },
+        }))
 
-      const segmentBuffers: Uint8Array[] = []
-      let chapterFailed = false
+        const segmentBuffers: Uint8Array[] = []
+        let chapterFailed = false
 
-      for (const chunk of chunks) {
-        let buffer: Uint8Array | null = null
-        for (let attempt = 0; attempt < 2; attempt++) {
-          try {
-            const res = await fetch('/api/synthesize/chapter', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ paragraphs: chunk, voice }),
-            })
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-            buffer = new Uint8Array(await res.arrayBuffer())
-            break
-          } catch {
-            if (attempt === 1) break
+        for (const chunk of chunks) {
+          let buffer: Uint8Array | null = null
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              const res = await fetch('/api/synthesize/chapter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paragraphs: chunk, voice }),
+                signal: controller.signal,
+              })
+              if (!res.ok) throw new Error(`HTTP ${res.status}`)
+              buffer = new Uint8Array(await res.arrayBuffer())
+              break
+            } catch (err) {
+              if (err instanceof Error && err.name === 'AbortError') throw err
+              if (attempt === 1) break
+            }
           }
+
+          if (buffer) {
+            segmentBuffers.push(buffer)
+          } else {
+            chapterFailed = true
+            break
+          }
+
+          segmentsDone++
+          setProgress({ done: segmentsDone, total: totalSegments })
         }
 
-        if (buffer) {
-          segmentBuffers.push(buffer)
+        if (!chapterFailed && segmentBuffers.length > 0) {
+          const buffer = concatBuffers(segmentBuffers)
+          const blob = new Blob([buffer], { type: 'audio/mpeg' })
+          const blobUrl = URL.createObjectURL(blob)
+          audioBuffers.current.set(ch.id, buffer)
+          setChapterAudios((prev) => ({
+            ...prev,
+            [ch.id]: { buffer, blobUrl, status: 'done' },
+          }))
         } else {
-          chapterFailed = true
-          break
+          segmentsDone += chunks.length - segmentBuffers.length
+          setProgress({ done: segmentsDone, total: totalSegments })
+          setChapterAudios((prev) => ({
+            ...prev,
+            [ch.id]: { buffer: new Uint8Array(), blobUrl: '', status: 'failed' },
+          }))
         }
-
-        segmentsDone++
-        setProgress({ done: segmentsDone, total: totalSegments })
       }
 
-      if (!chapterFailed && segmentBuffers.length > 0) {
-        const buffer = concatBuffers(segmentBuffers)
-        const blob = new Blob([buffer], { type: 'audio/mpeg' })
-        const blobUrl = URL.createObjectURL(blob)
-        audioBuffers.current.set(ch.id, buffer)
-        setChapterAudios((prev) => ({
-          ...prev,
-          [ch.id]: { buffer, blobUrl, status: 'done' },
-        }))
-      } else {
-        segmentsDone += chunks.length - segmentBuffers.length
-        setProgress({ done: segmentsDone, total: totalSegments })
-        setChapterAudios((prev) => ({
-          ...prev,
-          [ch.id]: { buffer: new Uint8Array(), blobUrl: '', status: 'failed' },
-        }))
+      setPhase('done')
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        resetState()
+        return
       }
+      throw err
+    } finally {
+      synthesizingRef.current = false
+      abortRef.current = null
     }
-
-    setPhase('done')
-  }, [chapters, selectedVoices, chapterLocales])
+  }, [chapters, selectedVoices, chapterLocales, resetState])
 
   const downloadZip = useCallback(async () => {
     const blob = await buildZip(chapters, audioBuffers.current)
@@ -222,5 +266,6 @@ export function useSynthesis(chapters: Chapter[]) {
     startSynthesis,
     synthesizeWithLocale,
     downloadZip,
+    cancel,
   }
 }
