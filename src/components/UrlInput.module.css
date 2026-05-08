@@ -1,0 +1,17 @@
+/* src/components/UrlInput.module.css */
+.wrap { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; gap: 6px; }
+.urlInput { flex: 1; }
+.iframeWrap { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.iframe { width: 100%; height: 360px; border: none; display: block; }
+.tray {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 10px; font-size: 12px;
+  border-top: 1px solid var(--border); background: var(--surface, #f8f8f8);
+  flex-wrap: wrap;
+}
+.ghostBtn { font-size: 12px; color: var(--accent, #4f46e5); background: none; border: none; cursor: pointer; padding: 0; }
+.checkItem { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+.selectorWrap { display: flex; flex-direction: column; gap: 6px; }
+.hint { font-size: 11px; color: var(--text-secondary, #888); }
+.dubBtn { width: 100%; margin-top: 4px; }
