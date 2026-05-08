@@ -40,7 +40,11 @@ export default function UrlInput({ onChapters, onError, disabled }: Props) {
       }
     }
     window.addEventListener('message', onMsg)
-    return () => window.removeEventListener('message', onMsg)
+    return () => {
+      window.removeEventListener('message', onMsg)
+      if (pickerTimerRef.current) clearTimeout(pickerTimerRef.current)
+    }
+  // loadChecklist is stable within this url scope; re-registering on url change is intentional
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url])
 
@@ -99,6 +103,7 @@ export default function UrlInput({ onChapters, onError, disabled }: Props) {
       onChapters(parsePlainText(text, 'page'))
     }
     setUi({ tag: 'idle' })
+    setPasteText('')
   }
 
   const pickerWords = pickerTexts.join(' ').split(/\s+/).filter(Boolean).length
