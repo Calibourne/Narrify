@@ -74,7 +74,15 @@ function extractSemanticBlocks(html: string): SemanticBlock[] {
 }
 
 export async function POST(req: NextRequest) {
-  const { url, mode } = (await req.json()) as { url: string; mode?: 'blocks' }
+  let url: string
+  let mode: 'blocks' | undefined
+  try {
+    const body = await req.json() as { url?: string; mode?: 'blocks' }
+    url = body.url ?? ''
+    mode = body.mode
+  } catch {
+    return NextResponse.json({ type: 'error', message: 'Invalid request body' }, { status: 400 })
+  }
 
   if (!url?.startsWith('http')) {
     return NextResponse.json({ type: 'error', message: 'Invalid URL' }, { status: 400 })
@@ -99,7 +107,8 @@ export async function POST(req: NextRequest) {
   if (isBookUrl(url, contentType)) {
     try {
       const buffer = new Uint8Array(await res.arrayBuffer())
-      const filename = url.split('/').pop()?.split('?')[0] ?? 'book'
+      const pathname = new URL(url).pathname
+      const filename = pathname.split('/').pop()?.split('?')[0] || 'book'
       const chapters = await selectParser(filename).parse(buffer)
       return NextResponse.json({ type: 'chapters', chapters })
     } catch (err) {
