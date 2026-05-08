@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 import type { Chapter } from '@/lib/parsers/types'
 import type { ChapterStatus } from '@/hooks/useSynthesis'
 import styles from './ChapterItem.module.css'
+import { formatElapsed } from '@/lib/tts/formatTime'
 
 type Props = {
   chapter: Chapter
@@ -15,6 +16,8 @@ export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl
   const [open, setOpen] = useState(defaultOpen)
   const [playing, setPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const title = chapter.title ?? `Chapter ${chapter.order + 1}`
 
@@ -22,11 +25,15 @@ export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl
     if (!blobUrl) return
     const a = new Audio(blobUrl)
     a.addEventListener('timeupdate', () => {
-      if (a.duration) setProgress(a.currentTime / a.duration)
+      if (!a.duration) return
+      setProgress(a.currentTime / a.duration)
+      setCurrentTime(Math.floor(a.currentTime))
+      setDuration(Math.floor(a.duration))
     })
     a.addEventListener('ended', () => {
       setPlaying(false)
       setProgress(0)
+      setCurrentTime(0)
     })
     audioRef.current = a
     return () => {
@@ -35,6 +42,8 @@ export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl
       audioRef.current = null
       setPlaying(false)
       setProgress(0)
+      setCurrentTime(0)
+      setDuration(0)
     }
   }, [blobUrl])
 
@@ -84,6 +93,14 @@ export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl
                 </svg>
               )}
             </button>
+          )}
+          {audioStatus === 'done' && duration > 0 && (
+            <span
+              className={styles.timeDisplay}
+              aria-label={`${formatElapsed(currentTime)} of ${formatElapsed(duration)}`}
+            >
+              {formatElapsed(currentTime)}&thinsp;/&thinsp;{formatElapsed(duration)}
+            </span>
           )}
           <span className={styles.arrow}>{open ? '▲' : '▼'}</span>
         </span>

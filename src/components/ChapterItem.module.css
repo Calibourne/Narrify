@@ -89,6 +89,14 @@
   opacity: 0.8;
 }
 
+.timeDisplay {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
 .progressRail {
   position: absolute;
   bottom: 0;
