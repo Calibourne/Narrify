@@ -11,13 +11,15 @@ const chapters: Chapter[] = [
 
 test('shows chapter count', () => {
   const { unmount } = render(<StatsBadge chapters={chapters} />)
-  expect(screen.getByText(/2 chapters/)).toBeInTheDocument()
+  expect(screen.getByText('2')).toBeInTheDocument()
+  expect(screen.getByText('chapters')).toBeInTheDocument()
   unmount()
 })
 
 test('shows total paragraph count', () => {
   const { unmount } = render(<StatsBadge chapters={chapters} />)
-  expect(screen.getByText(/3 paragraphs/)).toBeInTheDocument()
+  expect(screen.getByText('3')).toBeInTheDocument()
+  expect(screen.getByText('paragraphs')).toBeInTheDocument()
   unmount()
 })
 
@@ -26,7 +28,8 @@ test('handles single chapter and single paragraph', () => {
     { id: 'ch-0', title: 'Only', paragraphs: ['one'], order: 0 },
   ]
   const { unmount } = render(<StatsBadge chapters={single} />)
-  expect(screen.getByText(/1 chapter/)).toBeInTheDocument()
-  expect(screen.getByText(/1 paragraph/)).toBeInTheDocument()
+  expect(screen.getAllByText('1')).toHaveLength(2)
+  expect(screen.getByText('chapter')).toBeInTheDocument()
+  expect(screen.getByText('paragraph')).toBeInTheDocument()
   unmount()
 })
