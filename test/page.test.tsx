@@ -45,7 +45,7 @@ test('shows error message when parser throws', async () => {
   })
 
   renderAndSelectFile()
-  fireEvent.click(screen.getByRole('button', { name: 'Parse Book' }))
+  fireEvent.click(screen.getByRole('button', { name: /parse "sample\.fb2"/i }))
 
   await waitFor(() => {
     expect(screen.getByText('File is corrupted')).toBeInTheDocument()
@@ -60,7 +60,7 @@ test('shows SynthesisPanel after book is parsed', async () => {
   })
 
   renderAndSelectFile('sample.epub')
-  fireEvent.click(screen.getByRole('button', { name: 'Parse Book' }))
+  fireEvent.click(screen.getByRole('button', { name: /parse "sample\.epub"/i }))
 
   await waitFor(() => {
     expect(screen.getByRole('button', { name: /generate audio/i })).toBeInTheDocument()

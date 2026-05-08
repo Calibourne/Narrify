@@ -1,0 +1,16 @@
+/* src/components/InputTabs.module.css */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.tab {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, #888);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+.tab:hover { color: var(--text); }
+.active { color: var(--text); border-bottom-color: var(--accent, #4f46e5); }
+.parseBtn { width: 100%; margin-top: 8px; }

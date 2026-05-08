@@ -1,10 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { selectParser } from '@/lib/parsers'
 import type { Chapter } from '@/lib/parsers/types'
 import { useSynthesis } from '@/hooks/useSynthesis'
 import ThemeToggle from '@/components/ThemeToggle'
-import UploadZone from '@/components/UploadZone'
+import InputTabs from '@/components/InputTabs'
 import StatsBadge from '@/components/StatsBadge'
 import ChapterList from '@/components/ChapterList'
 import SynthesisPanel from '@/components/SynthesisPanel'
@@ -13,15 +12,11 @@ import styles from './page.module.css'
 
 const { hue, name: buildName } = deriveBuildVisuals(process.env.NEXT_PUBLIC_COMMIT_SHA ?? 'dev')
 
-type Status = 'idle' | 'uploading' | 'success' | 'error'
-
 export default function Home() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window === 'undefined') return 'light'
     return (localStorage.getItem('narrify-theme') as 'light' | 'dark') ?? 'light'
   })
-  const [status, setStatus] = useState<Status>('idle')
-  const [file, setFile] = useState<File | null>(null)
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const synthesis = useSynthesis(chapters)
@@ -34,44 +29,17 @@ export default function Home() {
     })
   }
 
-  function handleFile(f: File) {
-    setFile(f)
+  function handleChapters(chs: Chapter[]) {
     setErrorMsg(null)
-    setStatus('idle')
+    setChapters(chs)
+  }
+
+  function handleError(msg: string) {
+    setErrorMsg(msg)
     setChapters([])
   }
 
-  function handleClear() {
-    setFile(null)
-    setStatus('idle')
-    setChapters([])
-    setErrorMsg(null)
-  }
-
-  async function handleParse() {
-    if (!file) return
-    setStatus('uploading')
-    setErrorMsg(null)
-    try {
-      let parser
-      try {
-        parser = selectParser(file.name)
-      } catch (err) {
-        setErrorMsg(err instanceof Error ? err.message : 'Unsupported format')
-        setStatus('error')
-        return
-      }
-      const buffer = new Uint8Array(await file.arrayBuffer())
-      const chapters = await parser.parse(buffer)
-      setChapters(chapters)
-      setStatus('success')
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Something went wrong. Try again.')
-      setStatus('error')
-    }
-  }
-
-  const uploading = status === 'uploading'
+  const busy = synthesis.phase === 'synthesizing'
 
   return (
     <div className={styles.page}>
@@ -87,40 +55,17 @@ export default function Home() {
         <aside className={styles.left}>
           <div className={styles.section}>
             <span className={styles.label}>Book</span>
-            <UploadZone onFile={handleFile} disabled={uploading} />
-            {file && (
-              <div className={styles.fileRow}>
-                <span className={styles.fileName}>📄 {file.name}</span>
-                <button className={styles.clearBtn} onClick={handleClear} aria-label="Remove file">
-                  ✕
-                </button>
-              </div>
-            )}
-
+            <InputTabs onChapters={handleChapters} onError={handleError} disabled={busy} />
           </div>
-
-          <button
-            className={styles.parseBtn}
-            disabled={!file || uploading}
-            onClick={handleParse}
-          >
-            {uploading ? 'Parsing…' : 'Parse Book'}
-          </button>
-
-          {status === 'success' && chapters.length > 0 && (
-            <SynthesisPanel synthesis={synthesis} />
-          )}
-
+          {chapters.length > 0 && <SynthesisPanel synthesis={synthesis} />}
         </aside>
 
         <main className={styles.right}>
-          {status !== 'success' && status !== 'error' && (
+          {chapters.length === 0 && !errorMsg && (
             <p className={styles.empty}>Upload a book to get started.</p>
           )}
-          {status === 'error' && errorMsg && (
-            <p className={styles.error}>{errorMsg}</p>
-          )}
-          {status === 'success' && chapters.length > 0 && (
+          {errorMsg && <p className={styles.error}>{errorMsg}</p>}
+          {chapters.length > 0 && (
             <>
               <StatsBadge chapters={chapters} />
               <ChapterList chapters={chapters} chapterAudios={synthesis.chapterAudios} />
