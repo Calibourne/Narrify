@@ -10,7 +10,8 @@
   --surface-subtle: #f3f4f6;
   --border: #e5e7eb;
   --foreground: #111827;
-  --text-muted: #6b7280;
+  --text-muted: #4b5563;
+  --text-secondary: #4b5563;
   --accent: #4f46e5;
   --accent-hover: #4338ca;
 }
@@ -21,7 +22,8 @@
   --surface-subtle: #232323;
   --border: #333333;
   --foreground: #f5f5f5;
-  --text-muted: #888888;
+  --text-muted: #9ca3af;
+  --text-secondary: #9ca3af;
   --accent: #00d4aa;
   --accent-hover: #00b894;
 }
@@ -32,4 +34,17 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

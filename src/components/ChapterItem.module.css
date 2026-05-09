@@ -67,8 +67,8 @@
 }
 
 .playBtn {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: none;
   background: var(--accent);
@@ -83,6 +83,11 @@
 
 .playBtn:hover {
   filter: brightness(1.1);
+}
+
+.playBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .timeDisplay {
@@ -120,4 +125,13 @@
   line-height: 1.6;
   color: var(--foreground);
   margin-top: 12px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.pulse {
+  animation: pulse 1.4s ease-in-out infinite;
 }

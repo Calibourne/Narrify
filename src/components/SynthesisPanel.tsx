@@ -48,47 +48,15 @@ export default function SynthesisPanel({ synthesis }: Props) {
   const [idleVoices, setIdleVoices] = useState<Voice[]>([])
   const [idleVoice, setIdleVoice] = useState('')
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    const savedRate = localStorage.getItem('narrify-rate')
-    const savedPitch = localStorage.getItem('narrify-pitch')
-    const savedLocale = localStorage.getItem('narrify-locale')
-    if (savedRate) setRate(parseFloat(savedRate))
-    if (savedPitch) setPitch(parseFloat(savedPitch))
-    if (savedLocale) setIdleLocale(savedLocale)
-  }, [setRate, setPitch])
-
-  // Save to localStorage when changed
-  useEffect(() => {
-    localStorage.setItem('narrify-rate', rate.toString())
-    localStorage.setItem('narrify-pitch', pitch.toString())
-    localStorage.setItem('narrify-locale', idleLocale)
-  }, [rate, pitch, idleLocale])
-
   useEffect(() => {
     fetch(`/api/voices?locale=${idleLocale}`)
       .then((r) => r.json())
       .then((voices: Voice[]) => {
         setIdleVoices(voices)
-        const savedVoice = localStorage.getItem(`narrify-voice-${idleLocale}`)
-        setIdleVoice(savedVoice || voices[0]?.ShortName || '')
+        setIdleVoice(voices[0]?.ShortName ?? '')
       })
       .catch(() => {})
   }, [idleLocale])
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        if (phase === 'idle' && idleVoice) {
-          synthesizeWithLocale(idleLocale, idleVoice)
-        } else if (phase === 'selecting') {
-          startSynthesis()
-        }
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [phase, idleVoice, idleLocale, synthesizeWithLocale, startSynthesis])
 
   if (phase === 'idle') {
     return (
@@ -109,7 +77,7 @@ export default function SynthesisPanel({ synthesis }: Props) {
         <select
           className={styles.select}
           value={idleVoice}
-          onChange={(e) => handleVoiceChange(e.target.value)}
+          onChange={(e) => setIdleVoice(e.target.value)}
           disabled={idleVoices.length === 0}
           aria-label="Voice"
         >
