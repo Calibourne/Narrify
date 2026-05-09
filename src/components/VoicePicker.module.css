@@ -6,22 +6,30 @@
 }
 
 .label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--foreground);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .select {
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--foreground);
   font-size: 13px;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
+  outline: none;
 }
 
 .select:hover {
+  border-color: var(--accent);
+  background: var(--surface-subtle);
+}
+
+.select:focus {
   border-color: var(--accent);
 }

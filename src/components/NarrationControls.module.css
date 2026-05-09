@@ -16,9 +16,11 @@
 .label {
   grid-column: 1;
   grid-row: 1;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--foreground);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .slider {

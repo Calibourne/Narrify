@@ -1,12 +1,12 @@
 .zone {
   border: 1px dashed var(--border);
-  border-radius: 8px;
-  padding: 24px 16px;
+  border-radius: 6px;
+  padding: 32px 24px;
   text-align: center;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   color: var(--text-muted);
   font-size: 13px;
   transition: border-color 0.15s, background 0.15s;
@@ -21,17 +21,15 @@
 .hint {
   font-size: 12px;
   color: var(--text-muted);
-  opacity: 0.7;
 }
 
 .dragging {
   border-color: var(--accent);
   border-style: solid;
   background: var(--surface-subtle);
-  transform: scale(1.01);
 }
 
 .disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
