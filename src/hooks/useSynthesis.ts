@@ -2,6 +2,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Chapter } from '@/lib/parsers/types'
 import { buildZip } from '@/lib/tts/buildZip'
+import { tagAudio } from '@/lib/tts/tagAudio'
 
 const MAX_SEGMENT_CHARS = 2_500
 
@@ -145,6 +146,7 @@ export function useSynthesis(chapters: Chapter[]) {
   const startSynthesis = useCallback(async (
     localesMap: Record<string, string> = chapterLocales,
     voicesMap: Record<string, string> = selectedVoices,
+    bookTitle?: string
   ) => {
     setChapterAudios((prev) => {
       for (const audio of Object.values(prev)) {
@@ -216,7 +218,19 @@ export function useSynthesis(chapters: Chapter[]) {
         }
 
         if (!chapterFailed && segmentBuffers.length > 0) {
-          const buffer = concatBuffers(segmentBuffers)
+          let buffer = concatBuffers(segmentBuffers)
+          
+          try {
+            buffer = tagAudio(buffer, {
+              title: ch.title,
+              track: ch.order + 1,
+              totalTracks: chapters.length,
+              album: bookTitle
+            })
+          } catch (e) {
+            console.error('Failed to tag audio:', e)
+          }
+
           const blob = new Blob([buffer], { type: 'audio/mpeg' })
           const blobUrl = URL.createObjectURL(blob)
           audioBuffers.current.set(ch.id, buffer)
@@ -257,9 +271,9 @@ export function useSynthesis(chapters: Chapter[]) {
     URL.revokeObjectURL(url)
   }, [chapters])
 
-  const synthesizeWithLocale = useCallback(async (locale: string, voice: string) => {
+  const synthesizeWithLocale = useCallback(async (locale: string, voice: string, bookTitle?: string) => {
     const localesMap = Object.fromEntries(chapters.map((ch) => [ch.id, locale]))
-    await startSynthesis(localesMap, { [locale]: voice })
+    await startSynthesis(localesMap, { [locale]: voice }, bookTitle)
   }, [chapters, startSynthesis])
 
   return {

@@ -7,9 +7,12 @@ import styles from './SynthesisPanel.module.css'
 import NarrationControls from '@/components/NarrationControls'
 import { formatElapsed, formatEta } from '@/lib/tts/formatTime'
 
-type Props = { synthesis: SynthesisResult }
+type Props = { 
+  synthesis: SynthesisResult 
+  bookTitle?: string
+}
 
-export default function SynthesisPanel({ synthesis }: Props) {
+export default function SynthesisPanel({ synthesis, bookTitle }: Props) {
   const {
     phase,
     voicesByLocale,
@@ -92,7 +95,7 @@ export default function SynthesisPanel({ synthesis }: Props) {
           onPitchChange={setPitch}
         />
         <button
-          onClick={() => synthesizeWithLocale(idleLocale, idleVoice)}
+          onClick={() => synthesizeWithLocale(idleLocale, idleVoice, bookTitle)}
           disabled={!idleVoice}
           className={styles.btn}
         >
@@ -143,7 +146,7 @@ export default function SynthesisPanel({ synthesis }: Props) {
           onPitchChange={setPitch}
         />
         <div className={styles.buttonRow}>
-          <button onClick={() => startSynthesis()} className={styles.btn}>
+          <button onClick={() => startSynthesis(undefined, undefined, bookTitle)} className={styles.btn}>
             Start Synthesis
           </button>
           <button type="button" onClick={cancel} className={styles.ghostBtn}>Cancel</button>

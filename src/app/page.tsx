@@ -21,6 +21,7 @@ export default function Home() {
     return (localStorage.getItem('narrify-theme') as 'light' | 'dark') ?? 'light'
   })
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [bookTitle, setBookTitle] = useState<string | undefined>()
   
   const book = useBookState([])
 
@@ -28,11 +29,17 @@ export default function Home() {
     setErrorMsg(null)
     book.setChapters(chs)
     book.selectAll()
+    if (chs.length > 0) {
+      // For TXT, the first chapter might be the title
+      // For others, we might want to capture the filename
+      setBookTitle(chs[0].title)
+    }
   }
 
   const handleError = (msg: string) => {
     setErrorMsg(msg)
     book.setChapters([])
+    setBookTitle(undefined)
   }
 
   const synthesis = useSynthesis(book.selectedChapters)
@@ -71,7 +78,7 @@ export default function Home() {
             />
           </div>
           {hasChapters && (
-            <SynthesisPanel synthesis={synthesis} />
+            <SynthesisPanel synthesis={synthesis} bookTitle={bookTitle} />
           )}
           <footer className={styles.versionFooter}>
             <span className={styles.versionName}>{buildName}</span>
