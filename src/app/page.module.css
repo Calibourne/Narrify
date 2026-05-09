@@ -130,33 +130,28 @@
   cursor: not-allowed;
 }
 
-.error {
-  font-size: 12px;
-  color: #e53e3e;
+.versionFooter {
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0.4;
+  transition: opacity 0.15s;
 }
 
-.warning {
+.versionFooter:hover {
+  opacity: 0.8;
+}
+
+.versionName {
   font-size: 11px;
-  color: #d69e2e;
+  font-weight: 600;
+  color: var(--foreground);
 }
 
-.empty {
+.versionHash {
+  font-size: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   color: var(--text-muted);
-  font-size: 14px;
-  text-align: center;
-  margin-top: 80px;
-}
-
-@media (max-width: 640px) {
-  .panels {
-    flex-direction: column;
-  }
-
-  .left {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    position: static;
-    height: auto;
-  }
 }

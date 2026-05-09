@@ -7,7 +7,10 @@ import InputTabs from '@/components/InputTabs'
 import StatsBadge from '@/components/StatsBadge'
 import ChapterList from '@/components/ChapterList'
 import SynthesisPanel from '@/components/SynthesisPanel'
+import { deriveBuildVisuals } from '@/lib/buildSlug'
 import styles from './page.module.css'
+
+const { name: buildName } = deriveBuildVisuals(process.env.NEXT_PUBLIC_COMMIT_SHA ?? 'dev')
 
 export default function Home() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -54,6 +57,10 @@ export default function Home() {
             <InputTabs onChapters={handleChapters} onError={handleError} disabled={busy} />
           </div>
           {chapters.length > 0 && <SynthesisPanel synthesis={synthesis} />}
+          <footer className={styles.versionFooter}>
+            <span className={styles.versionName}>{buildName}</span>
+            <span className={styles.versionHash}>{(process.env.NEXT_PUBLIC_COMMIT_SHA ?? 'dev').slice(0, 7)}</span>
+          </footer>
         </aside>
 
         <main className={styles.right}>
