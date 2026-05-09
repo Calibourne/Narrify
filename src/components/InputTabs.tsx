@@ -4,6 +4,7 @@ import UploadZone from './UploadZone'
 import PasteInput from './PasteInput'
 import UrlInput from './UrlInput'
 import { selectParser } from '@/lib/parsers'
+import type { Chapter } from '@/lib/parsers/types'
 import type { useUrlParsing } from '@/hooks/useUrlParsing'
 import styles from './InputTabs.module.css'
 
