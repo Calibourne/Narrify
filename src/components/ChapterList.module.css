@@ -1,5 +1,92 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  gap: 16px;
+}
+
+.bulkActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbarBtn {
+  padding: 6px 12px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--foreground);
+}
+
+.toolbarBtn:hover {
+  background: var(--surface);
+  border-color: var(--text-muted);
+}
+
+.selectionCount {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.rangeForm {
+  display: flex;
+  gap: 8px;
+}
+
+.rangeInput {
+  padding: 6px 10px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--foreground);
+  width: 140px;
+}
+
+.rangeInput:focus {
+  outline: 2px solid var(--accent);
+  border-color: transparent;
+}
+
+.rangeBtn {
+  padding: 6px 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.rangeBtn:hover {
+  filter: brightness(1.1);
+}
+
 .list {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .rangeInput {
+    flex: 1;
+  }
 }

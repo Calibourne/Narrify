@@ -7,18 +7,42 @@ import { formatElapsed } from '@/lib/tts/formatTime'
 
 type Props = {
   chapter: Chapter
+  isSelected: boolean
   defaultOpen: boolean
   audioStatus?: ChapterStatus
   blobUrl?: string
+  isLast?: boolean
+  onToggleSelection: () => void
+  onUpdate: (updates: Partial<Pick<Chapter, 'title' | 'paragraphs'>>) => void
+  onDelete: () => void
+  onSplit: (paragraphIndex: number) => void
+  onMerge: () => void
 }
 
-export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl }: Props) {
+export default function ChapterItem({ 
+  chapter, 
+  isSelected,
+  defaultOpen, 
+  audioStatus, 
+  blobUrl,
+  isLast,
+  onToggleSelection,
+  onUpdate,
+  onDelete,
+  onSplit,
+  onMerge
+}: Props) {
   const [open, setOpen] = useState(defaultOpen)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState(chapter.title ?? '')
+  const [editParagraphs, setEditParagraphs] = useState(chapter.paragraphs)
+  
   const [playing, setPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  
   const title = chapter.title ?? `Chapter ${chapter.order + 1}`
 
   useEffect(() => {
@@ -69,12 +93,33 @@ export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl
     }
   }
 
+  function handleSave() {
+    onUpdate({ title: editTitle, paragraphs: editParagraphs })
+    setIsEditing(false)
+  }
+
+  function handleCancel() {
+    setEditTitle(chapter.title ?? '')
+    setEditParagraphs(chapter.paragraphs)
+    setIsEditing(false)
+  }
+
   const showDot = audioStatus === 'synthesizing' || audioStatus === 'done' || audioStatus === 'failed'
 
   return (
-    <div className={styles.item}>
-      <button className={styles.header} onClick={() => setOpen(!open)}>
-        <span className={styles.headerLeft}>
+    <div className={[styles.item, isSelected ? styles.selected : ''].join(' ')}>
+      <div className={styles.header} onClick={() => setOpen(!open)}>
+        <div className={styles.headerLeft}>
+          <input 
+            type="checkbox" 
+            checked={isSelected} 
+            onChange={(e) => {
+              e.stopPropagation()
+              onToggleSelection()
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className={styles.checkbox}
+          />
           {showDot && (
             <span className={[
               styles.statusDot,
@@ -83,8 +128,35 @@ export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl
             ].join(' ')} aria-hidden="true" />
           )}
           <span className={styles.title}>{title}</span>
-        </span>
-        <span className={styles.headerRight}>
+        </div>
+        <div className={styles.headerRight}>
+          {!isEditing && (
+            <div className={styles.actions}>
+              <button 
+                className={styles.actionBtn} 
+                onClick={(e) => { e.stopPropagation(); setIsEditing(true); setOpen(true); }}
+                title="Edit chapter"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4L18.5 2.5z"></path></svg>
+              </button>
+              {!isLast && (
+                <button 
+                  className={styles.actionBtn} 
+                  onClick={(e) => { e.stopPropagation(); onMerge(); }}
+                  title="Merge with next"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 15l5 5 5-5"></path><path d="M12 9v11"></path><path d="M17 4l-5 5-5-5"></path></svg>
+                </button>
+              )}
+              <button 
+                className={[styles.actionBtn, styles.deleteBtn].join(' ')} 
+                onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                title="Delete chapter"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              </button>
+            </div>
+          )}
           {audioStatus === 'done' && (
             <button
               className={styles.playBtn}
@@ -112,18 +184,62 @@ export default function ChapterItem({ chapter, defaultOpen, audioStatus, blobUrl
             </span>
           )}
           <span className={styles.arrow}>{open ? '▲' : '▼'}</span>
-        </span>
+        </div>
         {audioStatus === 'done' && duration > 0 && (
           <span className={styles.progressRail} onClick={handleSeek} aria-hidden="true">
             <span className={styles.progressRailFill} style={{ width: `${progress * 100}%` }} />
           </span>
         )}
-      </button>
+      </div>
       {open && (
         <div className={styles.body}>
-          {chapter.paragraphs.map((p, i) => (
-            <p key={i} className={styles.paragraph}>{p}</p>
-          ))}
+          {isEditing ? (
+            <div className={styles.editSection}>
+              <div className={styles.editRow}>
+                <label className={styles.editLabel}>Title</label>
+                <input 
+                  className={styles.titleInput}
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                />
+              </div>
+              <div className={styles.paragraphsEdit}>
+                {editParagraphs.map((p, i) => (
+                  <div key={i} className={styles.paragraphEditRow}>
+                    <textarea 
+                      className={styles.paragraphInput}
+                      value={p}
+                      onChange={(e) => {
+                        const next = [...editParagraphs]
+                        next[i] = e.target.value
+                        setEditParagraphs(next)
+                      }}
+                      rows={Math.max(1, Math.ceil(p.length / 80))}
+                    />
+                    <div className={styles.paragraphActions}>
+                      {i < editParagraphs.length - 1 && (
+                        <button 
+                          className={styles.splitBtn}
+                          onClick={() => onSplit(i + 1)}
+                          title="Split into new chapter starting here"
+                        >
+                          Split Chapter
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.editFooter}>
+                <button className={styles.saveBtn} onClick={handleSave}>Save Changes</button>
+                <button className={styles.cancelBtn} onClick={handleCancel}>Cancel</button>
+              </div>
+            </div>
+          ) : (
+            chapter.paragraphs.map((p, i) => (
+              <p key={i} className={styles.paragraph}>{p}</p>
+            ))
+          )}
         </div>
       )}
     </div>

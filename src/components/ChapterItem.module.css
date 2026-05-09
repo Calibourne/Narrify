@@ -3,6 +3,11 @@
   border-radius: 8px;
   background: var(--surface);
   overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.item.selected {
+  border-color: var(--accent);
 }
 
 .header {
@@ -27,9 +32,16 @@
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   flex: 1;
   min-width: 0;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent);
 }
 
 .headerRight {
@@ -38,6 +50,36 @@
   gap: 8px;
   flex-shrink: 0;
   margin-left: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  margin-right: 8px;
+}
+
+.actionBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.actionBtn:hover {
+  background: var(--surface);
+  color: var(--foreground);
+  border-color: var(--text-muted);
+}
+
+.deleteBtn:hover {
+  color: #ef4444;
+  border-color: #ef4444;
 }
 
 .statusDot {
@@ -64,11 +106,12 @@
   font-size: 10px;
   color: var(--text-muted);
   flex-shrink: 0;
+  margin-left: 8px;
 }
 
 .playBtn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: none;
   background: var(--accent);
@@ -85,11 +128,6 @@
   filter: brightness(1.1);
 }
 
-.playBtn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-
 .timeDisplay {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
@@ -103,7 +141,7 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 20px;
+  height: 16px;
   cursor: pointer;
   display: flex;
   align-items: flex-end;
@@ -125,6 +163,111 @@
   line-height: 1.6;
   color: var(--foreground);
   margin-top: 12px;
+}
+
+/* Edit Mode Styles */
+.editSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.editRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.titleInput {
+  padding: 8px 12px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.paragraphsEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.paragraphEditRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.paragraphInput {
+  padding: 10px 12px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.paragraphActions {
+  display: flex;
+  justify-content: center;
+}
+
+.splitBtn {
+  font-size: 11px;
+  background: var(--surface-subtle);
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.splitBtn:hover {
+  border-style: solid;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.editFooter {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.saveBtn {
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  padding: 8px 16px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--foreground);
+  font-size: 14px;
+  cursor: pointer;
 }
 
 @keyframes pulse {

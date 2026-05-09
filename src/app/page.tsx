@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { Chapter } from '@/lib/parsers/types'
 import { useSynthesis } from '@/hooks/useSynthesis'
 import { useUrlParsing } from '@/hooks/useUrlParsing'
+import { useBookState } from '@/hooks/useBookState'
 import ThemeToggle from '@/components/ThemeToggle'
 import InputTabs from '@/components/InputTabs'
 import StatsBadge from '@/components/StatsBadge'
@@ -95,6 +96,25 @@ export default function Home() {
                 <>
                   <StatsBadge chapters={chapters} />
                   <ChapterList chapters={chapters} chapterAudios={synthesis.chapterAudios} />
+                </>
+              )}
+            </>
+          )}
+        </main>
+      </div>
+    </div>
+  )
+}
+erAudios={synthesis.chapterAudios} 
+                    onToggleSelection={book.toggleSelection}
+                    onSelectRange={book.selectRange}
+                    onSelectAll={book.selectAll}
+                    onDeselectAll={book.deselectAll}
+                    onUpdateChapter={book.updateChapter}
+                    onDeleteChapter={book.deleteChapter}
+                    onSplitChapter={book.splitChapter}
+                    onMergeWithNext={book.mergeWithNext}
+                  />
                 </>
               )}
             </>
