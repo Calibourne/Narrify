@@ -9,7 +9,9 @@ export function tagAudio(
     album?: string 
   }
 ): Uint8Array {
-  const writer = new ID3Writer(buffer)
+  const Writer: any = (ID3Writer as any)?.default || ID3Writer
+  
+  const writer = new Writer(buffer)
   
   if (metadata.title) {
     writer.setFrame('TIT2', metadata.title)
