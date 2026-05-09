@@ -218,7 +218,7 @@ export function useSynthesis(chapters: Chapter[]) {
         }
 
         if (!chapterFailed && segmentBuffers.length > 0) {
-          let buffer = concatBuffers(segmentBuffers)
+          let buffer: any = concatBuffers(segmentBuffers)
           
           try {
             buffer = tagAudio(buffer, {

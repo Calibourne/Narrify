@@ -1,4 +1,4 @@
-import ID3Writer from 'browser-id3-writer'
+import { ID3Writer } from 'browser-id3-writer'
 
 export function tagAudio(
   buffer: Uint8Array, 
@@ -9,9 +9,7 @@ export function tagAudio(
     album?: string 
   }
 ): Uint8Array {
-  const Writer: any = (ID3Writer as any)?.default || ID3Writer
-  
-  const writer = new Writer(buffer)
+  const writer = new ID3Writer(buffer as any)
   
   if (metadata.title) {
     writer.setFrame('TIT2', metadata.title)
@@ -24,5 +22,5 @@ export function tagAudio(
   }
   
   writer.addTag()
-  return new Uint8Array(writer.arrayBuffer)
+  return new Uint8Array((writer as any).arrayBuffer)
 }
