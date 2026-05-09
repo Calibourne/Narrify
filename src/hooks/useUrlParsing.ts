@@ -25,7 +25,15 @@ export function useUrlParsing(onChapters: (chs: Chapter[]) => void, onError: (ms
   })
 
   const reset = useCallback(() => {
-    setState({ tag: 'idle', url: '', pickerTexts: [], checked: new Set(), pasteText: '' })
+    setState({
+      tag: 'idle',
+      url: '',
+      html: undefined,
+      blocks: undefined,
+      pickerTexts: [],
+      checked: new Set(),
+      pasteText: '',
+    })
   }, [])
 
   const setUrl = useCallback((url: string) => {
@@ -62,7 +70,7 @@ export function useUrlParsing(onChapters: (chs: Chapter[]) => void, onError: (ms
 
   const handleGo = useCallback(async () => {
     if (!state.url.trim()) return
-    setState(prev => ({ ...prev, tag: 'loading', pickerTexts: [] }))
+    setState(prev => ({ ...prev, tag: 'loading', pickerTexts: [], html: undefined, blocks: undefined }))
     try {
       const res = await fetch('/api/fetch-url', {
         method: 'POST',
@@ -90,7 +98,7 @@ export function useUrlParsing(onChapters: (chs: Chapter[]) => void, onError: (ms
   }, [state.url, onChapters, onError])
 
   const loadChecklist = useCallback(async () => {
-    setState(prev => ({ ...prev, tag: 'loading' }))
+    setState(prev => ({ ...prev, tag: 'loading', html: undefined, blocks: undefined }))
     try {
       const res = await fetch('/api/fetch-url', {
         method: 'POST',
@@ -116,8 +124,8 @@ export function useUrlParsing(onChapters: (chs: Chapter[]) => void, onError: (ms
     } catch {
       onChapters(parsePlainText(text, 'page'))
     }
-    setState(prev => ({ ...prev, tag: 'idle', pasteText: '' }))
-  }, [state.url, onChapters])
+    reset()
+  }, [state.url, onChapters, reset])
 
   return {
     state,

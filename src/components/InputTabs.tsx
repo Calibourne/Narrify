@@ -4,18 +4,19 @@ import UploadZone from './UploadZone'
 import PasteInput from './PasteInput'
 import UrlInput from './UrlInput'
 import { selectParser } from '@/lib/parsers'
-import type { Chapter } from '@/lib/parsers/types'
+import type { useUrlParsing } from '@/hooks/useUrlParsing'
 import styles from './InputTabs.module.css'
 
 type Tab = 'upload' | 'url' | 'paste'
 
 type Props = {
+  urlParsing: ReturnType<typeof useUrlParsing>
   onChapters: (chapters: Chapter[]) => void
   onError: (msg: string) => void
   disabled: boolean
 }
 
-export default function InputTabs({ onChapters, onError, disabled }: Props) {
+export default function InputTabs({ urlParsing, onChapters, onError, disabled }: Props) {
   const [tab, setTab] = useState<Tab>('upload')
   const [file, setFile] = useState<File | null>(null)
   const [parsing, setParsing] = useState(false)
@@ -63,7 +64,7 @@ export default function InputTabs({ onChapters, onError, disabled }: Props) {
           )}
         </>
       )}
-      {tab === 'url' && <UrlInput onChapters={onChapters} onError={onError} disabled={busy} />}
+      {tab === 'url' && <UrlInput urlParsing={urlParsing} disabled={busy} />}
       {tab === 'paste' && <PasteInput onChapters={onChapters} onError={onError} disabled={busy} />}
     </div>
   )

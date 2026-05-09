@@ -67,3 +67,27 @@ test('shows SynthesisPanel after book is parsed', async () => {
   })
 })
 
+test('shows UrlInputMain in right panel when parsing URL', async () => {
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+    ok: true,
+    json: async () => ({ type: 'html', html: '<h1>Article</h1><p>Text</p>' }),
+  } as any)
+
+  render(<Home />)
+  fireEvent.click(screen.getByRole('tab', { name: /from url/i }))
+  
+  const input = screen.getByPlaceholderText(/https:\/\//i)
+  fireEvent.change(input, { target: { value: 'https://example.com/article' } })
+  fireEvent.click(screen.getByRole('button', { name: /^go$/i }))
+
+  await waitFor(() => {
+    // Should show the "Page Preview" header which is part of UrlInputMain
+    expect(screen.getByText(/page preview/i)).toBeInTheDocument()
+    // The main area should have the iframe
+    expect(screen.getByTitle(/element picker/i)).toBeInTheDocument()
+  })
+
+  // The sidebar should show "Selecting elements..."
+  expect(screen.getByText(/selecting elements/i)).toBeInTheDocument()
+})
+

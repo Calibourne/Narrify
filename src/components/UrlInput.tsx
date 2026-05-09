@@ -1,16 +1,13 @@
 'use client'
-import { useUrlParsing } from '@/hooks/useUrlParsing'
+import type { useUrlParsing } from '@/hooks/useUrlParsing'
 import UrlInputSidebar from './UrlInputSidebar'
-import UrlInputMain from './UrlInputMain'
-import type { Chapter } from '@/lib/parsers/types'
 
 type Props = {
-  onChapters: (chapters: Chapter[]) => void
-  onError: (msg: string) => void
+  urlParsing: ReturnType<typeof useUrlParsing>
   disabled: boolean
 }
 
-export default function UrlInput({ onChapters, onError, disabled }: Props) {
+export default function UrlInput({ urlParsing, disabled }: Props) {
   const {
     state,
     setUrl,
@@ -18,31 +15,17 @@ export default function UrlInput({ onChapters, onError, disabled }: Props) {
     dubText,
     reset,
     setTag,
-    setChecked,
-    setPickerTexts,
-    loadChecklist,
-    setPasteText,
-  } = useUrlParsing(onChapters, onError)
+  } = urlParsing
 
   return (
-    <div>
-      <UrlInputSidebar
-        state={state}
-        setUrl={setUrl}
-        onGo={handleGo}
-        onDub={dubText}
-        onCancel={reset}
-        onSwitchMode={(mode) => setTag(mode)}
-        disabled={disabled}
-      />
-      <UrlInputMain
-        state={state}
-        setChecked={setChecked}
-        setPickerTexts={setPickerTexts}
-        onLoadChecklist={loadChecklist}
-        setPasteText={setPasteText}
-        onDub={dubText}
-      />
-    </div>
+    <UrlInputSidebar
+      state={state}
+      setUrl={setUrl}
+      onGo={handleGo}
+      onDub={dubText}
+      onCancel={reset}
+      onSwitchMode={(mode) => setTag(mode)}
+      disabled={disabled}
+    />
   )
 }
