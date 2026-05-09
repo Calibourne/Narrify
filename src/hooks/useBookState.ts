@@ -23,14 +23,15 @@ export function useBookState(initialChapters: Chapter[]) {
     })
   }, [])
 
-  const splitChapter = useCallback((id: string, paragraphIndex: number) => {
+  const splitChapter = useCallback((id: string, paragraphIndex: number, currentParagraphs?: string[]) => {
     setChapters(prev => {
       const index = prev.findIndex(ch => ch.id === id)
       if (index === -1) return prev
 
       const original = prev[index]
-      const before = original.paragraphs.slice(0, paragraphIndex)
-      const after = original.paragraphs.slice(paragraphIndex)
+      const paragraphsToUse = currentParagraphs || original.paragraphs
+      const before = paragraphsToUse.slice(0, paragraphIndex)
+      const after = paragraphsToUse.slice(paragraphIndex)
 
       if (before.length === 0 || after.length === 0) return prev
 

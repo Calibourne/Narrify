@@ -14,7 +14,7 @@ type Props = {
   onDeselectAll: () => void
   onUpdateChapter: (id: string, updates: Partial<Pick<Chapter, 'title' | 'paragraphs'>>) => void
   onDeleteChapter: (id: string) => void
-  onSplitChapter: (id: string, paragraphIndex: number) => void
+  onSplitChapter: (id: string, paragraphIndex: number, currentParagraphs?: string[]) => void
   onMergeWithNext: (id: string) => void
 }
 

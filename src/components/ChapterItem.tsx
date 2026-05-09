@@ -15,7 +15,7 @@ type Props = {
   onToggleSelection: () => void
   onUpdate: (updates: Partial<Pick<Chapter, 'title' | 'paragraphs'>>) => void
   onDelete: () => void
-  onSplit: (paragraphIndex: number) => void
+  onSplit: (paragraphIndex: number, currentParagraphs: string[]) => void
   onMerge: () => void
 }
 
@@ -37,6 +37,14 @@ export default function ChapterItem({
   const [editTitle, setEditTitle] = useState(chapter.title ?? '')
   const [editParagraphs, setEditParagraphs] = useState(chapter.paragraphs)
   
+  // Sync state if chapter prop changes externally
+  useEffect(() => {
+    if (!isEditing) {
+      setEditTitle(chapter.title ?? '')
+      setEditParagraphs(chapter.paragraphs)
+    }
+  }, [chapter, isEditing])
+
   const [playing, setPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
@@ -101,6 +109,11 @@ export default function ChapterItem({
   function handleCancel() {
     setEditTitle(chapter.title ?? '')
     setEditParagraphs(chapter.paragraphs)
+    setIsEditing(false)
+  }
+
+  function handleSplit(index: number) {
+    onSplit(index, editParagraphs)
     setIsEditing(false)
   }
 
@@ -220,7 +233,7 @@ export default function ChapterItem({
                       {i < editParagraphs.length - 1 && (
                         <button 
                           className={styles.splitBtn}
-                          onClick={() => onSplit(i + 1)}
+                          onClick={() => handleSplit(i + 1)}
                           title="Split into new chapter starting here"
                         >
                           Split Chapter
