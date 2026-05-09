@@ -5,6 +5,7 @@
     "": {
       "name": "narrify-scaffold",
       "dependencies": {
+        "browser-id3-writer": "^6.3.1",
         "cheerio": "^1.2.0",
         "edge-tts-universal": "^1.4.0",
         "fast-xml-parser": "^5.7.2",
@@ -648,6 +649,8 @@
     "brace-expansion": ["brace-expansion@1.1.14", "", { "dependencies": { "balanced-match": "^1.0.0", "concat-map": "0.0.1" } }, "sha512-MWPGfDxnyzKU7rNOW9SP/c50vi3xrmrua/+6hfPbCS2ABNWfx24vPidzvC7krjU/RTo235sV776ymlsMtGKj8g=="],
 
     "braces": ["braces@3.0.3", "", { "dependencies": { "fill-range": "^7.1.1" } }, "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA=="],
+
+    "browser-id3-writer": ["browser-id3-writer@6.3.1", "", {}, "sha512-sRA4Uq9Q3NsmXiVpLvIDxzomtgCdbw6SY85A6fw7dUQGRVoOBg1/buFv6spPhYiSo6FlVtN5OJQTvvhbmfx9rQ=="],
 
     "browserslist": ["browserslist@4.28.2", "", { "dependencies": { "baseline-browser-mapping": "^2.10.12", "caniuse-lite": "^1.0.30001782", "electron-to-chromium": "^1.5.328", "node-releases": "^2.0.36", "update-browserslist-db": "^1.2.3" }, "bin": { "browserslist": "cli.js" } }, "sha512-48xSriZYYg+8qXna9kwqjIVzuQxi+KYWp2+5nCYnYKPTr0LvD89Jqk2Or5ogxz0NUMfIjhh2lIUX/LyX9B4oIg=="],
 
