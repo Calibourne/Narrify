@@ -4,16 +4,16 @@ import styles from './NarrationControls.module.css'
 function speedLabel(rate: number): string {
   if (rate <= -40) return 'Very Slow'
   if (rate <= -15) return 'Slow'
-  if (rate <= 14) return 'Normal'
-  if (rate <= 39) return 'Fast'
+  if (rate <= 15) return 'Normal'
+  if (rate <= 40) return 'Fast'
   return 'Very Fast'
 }
 
 function pitchLabel(pitch: number): string {
   if (pitch <= -10) return 'Low'
-  if (pitch <= -3) return 'Slightly Low'
-  if (pitch <= 2) return 'Normal'
-  if (pitch <= 9) return 'Slightly High'
+  if (pitch <= -5) return 'Slightly Low'
+  if (pitch <= 0) return 'Normal'
+  if (pitch <= 5) return 'Slightly High'
   return 'High'
 }
 
@@ -34,6 +34,7 @@ export default function NarrationControls({ rate, pitch, onRateChange, onPitchCh
           type="range"
           min={-50}
           max={100}
+          step={5}
           value={rate}
           onChange={(e) => onRateChange(Number(e.target.value))}
           className={styles.slider}
@@ -49,6 +50,7 @@ export default function NarrationControls({ rate, pitch, onRateChange, onPitchCh
           type="range"
           min={-20}
           max={20}
+          step={5}
           value={pitch}
           onChange={(e) => onPitchChange(Number(e.target.value))}
           className={styles.slider}

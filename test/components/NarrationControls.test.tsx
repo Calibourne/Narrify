@@ -87,7 +87,7 @@ describe('NarrationControls', () => {
   })
 
   it('displays negative pitch without + prefix and Hz unit', () => {
-    render(<NarrationControls rate={0} pitch={-8} onRateChange={vi.fn()} onPitchChange={vi.fn()} />)
-    expect(screen.getByText('-8Hz')).toBeInTheDocument()
+    render(<NarrationControls rate={0} pitch={-10} onRateChange={vi.fn()} onPitchChange={vi.fn()} />)
+    expect(screen.getByText('-10Hz')).toBeInTheDocument()
   })
 })
