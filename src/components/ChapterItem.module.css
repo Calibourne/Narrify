@@ -35,7 +35,7 @@
 .headerRight {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
   margin-left: 8px;
 }
@@ -48,17 +48,13 @@
   flex-shrink: 0;
 }
 
-.pulse {
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
 .failedDot {
-  background: #e05555;
+  background: #ef4444;
 }
 
 .title {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -82,15 +78,15 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: opacity 0.15s;
+  transition: filter 0.15s;
 }
 
 .playBtn:hover {
-  opacity: 0.8;
+  filter: brightness(1.1);
 }
 
 .timeDisplay {
-  font-size: 11px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
   letter-spacing: 0.02em;
@@ -121,7 +117,7 @@
 
 .paragraph {
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.6;
   color: var(--foreground);
   margin-top: 12px;
 }

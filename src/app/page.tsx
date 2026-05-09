@@ -7,10 +7,7 @@ import InputTabs from '@/components/InputTabs'
 import StatsBadge from '@/components/StatsBadge'
 import ChapterList from '@/components/ChapterList'
 import SynthesisPanel from '@/components/SynthesisPanel'
-import { deriveBuildVisuals } from '@/lib/buildSlug'
 import styles from './page.module.css'
-
-const { hue, name: buildName } = deriveBuildVisuals(process.env.NEXT_PUBLIC_COMMIT_SHA ?? 'dev')
 
 export default function Home() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -43,10 +40,9 @@ export default function Home() {
 
   return (
     <div className={styles.page}>
-      <nav className={styles.nav} style={{ '--build-hue': String(hue) } as React.CSSProperties}>
+      <nav className={styles.nav}>
         <span className={styles.logoWrap}>
-          <span className={styles.logo} style={{ color: `hsl(${hue} 55% 42%)` }}>Narrify</span>
-          <span className={styles.buildName}>{buildName}</span>
+          <span className={styles.logo}>Narrify</span>
         </span>
         <ThemeToggle theme={theme} onToggle={toggleTheme} />
       </nav>

@@ -13,31 +13,25 @@
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  background: var(--background);
+  background: var(--surface);
   z-index: 10;
-  background-image: linear-gradient(to right, hsl(var(--build-hue, 150) 55% 42% / 0.7), transparent);
-  background-size: 100% 2px;
-  background-position: bottom;
-  background-repeat: no-repeat;
 }
 
 .logoWrap {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
 }
 
 .logo {
   font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.02em;
+  color: var(--foreground) !important;
 }
 
 .buildName {
-  font-size: 9px;
-  font-family: var(--font-geist-mono);
-  opacity: 0.5;
-  color: inherit;
+  display: none;
 }
 
 .panels {
@@ -46,7 +40,7 @@
 }
 
 .left {
-  width: 280px;
+  width: 240px;
   flex-shrink: 0;
   padding: 24px 20px;
   border-right: 1px solid var(--border);
@@ -57,12 +51,14 @@
   top: 49px;
   height: calc(100vh - 49px);
   overflow-y: auto;
+  background: var(--background);
 }
 
 .right {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+  background: var(--surface);
 }
 
 .section {
@@ -72,10 +68,8 @@
 }
 
 .label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-muted);
 }
 
@@ -85,13 +79,13 @@
   align-items: center;
   background: var(--surface-subtle);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 6px 10px;
   gap: 8px;
 }
 
 .fileName {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--foreground);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -117,18 +111,22 @@
 .parseBtn {
   width: 100%;
   padding: 10px;
-  background: var(--foreground);
-  color: var(--background);
+  background: var(--accent);
+  color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: filter 0.15s;
+}
+
+.parseBtn:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
 
 .parseBtn:disabled {
-  opacity: 0.35;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 

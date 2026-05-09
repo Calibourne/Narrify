@@ -4,14 +4,14 @@
   margin-bottom: 16px;
 }
 
-.pill {
+.item {
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
   padding: 4px 10px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 12px;
 }
 

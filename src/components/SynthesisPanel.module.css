@@ -7,27 +7,34 @@
 
 .btn {
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: none;
-  background: var(--accent, #0070f3);
+  background: var(--accent);
   color: #fff;
-  font-size: 0.9rem;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   align-self: flex-start;
+  transition: filter 0.15s;
 }
 
-.btn:hover {
-  opacity: 0.85;
+.btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .status {
-  font-size: 0.9rem;
-  color: var(--text-muted, #666);
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .error {
-  font-size: 0.9rem;
-  color: #c00;
+  font-size: 13px;
+  color: #ef4444;
 }
 
 .progressWrapper {
@@ -41,30 +48,30 @@
   height: 6px;
   appearance: none;
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   overflow: hidden;
-  background: var(--surface-subtle, #f0f0f0);
+  background: var(--surface-subtle);
 }
 
 .progressBar::-webkit-progress-bar {
-  background: var(--surface-subtle, #f0f0f0);
-  border-radius: 3px;
+  background: var(--surface-subtle);
+  border-radius: 4px;
 }
 
 .progressBar::-webkit-progress-value {
-  background: var(--accent, #0070f3);
-  border-radius: 3px;
+  background: var(--accent);
+  border-radius: 4px;
   transition: width 0.2s ease;
 }
 
 .progressBar::-moz-progress-bar {
-  background: var(--accent, #0070f3);
-  border-radius: 3px;
+  background: var(--accent);
+  border-radius: 4px;
 }
 
 .progressLabel {
-  font-size: 0.8rem;
-  color: var(--text-muted, #888);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .chapterRow {
@@ -76,7 +83,7 @@
 
 .chapterTitle {
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -87,13 +94,13 @@
 }
 
 .synthesizing {
-  font-size: 0.8rem;
-  color: var(--text-muted, #888);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .failed {
-  font-size: 0.8rem;
-  color: #c00;
+  font-size: 12px;
+  color: #ef4444;
 }
 
 .localeRow {
@@ -104,40 +111,42 @@
 
 .select {
   flex: 1;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border, #ddd);
-  background: var(--surface, #fff);
-  color: var(--foreground, inherit);
-  font-size: 0.875rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 13px;
   cursor: pointer;
   min-width: 0;
 }
 
 .ghostBtn {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border, #ddd);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
   background: transparent;
-  color: var(--text-muted, #666);
-  font-size: 0.8rem;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
+  transition: background 0.15s;
 }
 
 .ghostBtn:hover {
-  background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+  background: var(--surface-subtle);
 }
 
 .timerRow {
-  font-size: 0.8rem;
-  color: var(--text-muted, #888);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .eta {
-  font-size: 0.8rem;
-  color: var(--text-muted, #888);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .buttonRow {

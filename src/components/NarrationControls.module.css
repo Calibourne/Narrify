@@ -1,7 +1,7 @@
 .controls {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .row {
@@ -9,16 +9,16 @@
   grid-template-columns: 1fr auto auto;
   grid-template-rows: auto auto;
   align-items: center;
-  column-gap: 0.5rem;
-  row-gap: 0.15rem;
+  column-gap: 8px;
+  row-gap: 2px;
 }
 
 .label {
   grid-column: 1;
   grid-row: 1;
-  font-size: 0.85rem;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--fg-muted, #888);
+  color: var(--foreground);
 }
 
 .slider {
@@ -26,19 +26,22 @@
   grid-row: 2;
   width: 100%;
   cursor: pointer;
+  accent-color: var(--accent);
 }
 
 .value {
   grid-column: 2;
   grid-row: 1;
-  font-size: 0.8rem;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
   text-align: right;
+  color: var(--text-muted);
 }
 
 .tag {
   grid-column: 3;
   grid-row: 1;
-  font-size: 0.75rem;
-  color: var(--fg-muted, #888);
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.8;
 }
