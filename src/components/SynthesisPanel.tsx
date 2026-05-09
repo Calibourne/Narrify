@@ -4,6 +4,7 @@ import type { SynthesisResult, Voice } from '@/hooks/useSynthesis'
 import VoicePicker from '@/components/VoicePicker'
 import { LOCALE_OPTIONS } from '@/lib/tts/langMap'
 import styles from './SynthesisPanel.module.css'
+import NarrationControls from '@/components/NarrationControls'
 import { formatElapsed, formatEta } from '@/lib/tts/formatTime'
 
 type Props = { synthesis: SynthesisResult }
@@ -17,6 +18,10 @@ export default function SynthesisPanel({ synthesis }: Props) {
     setVoice,
     progress,
     error,
+    rate,
+    pitch,
+    setRate,
+    setPitch,
     detect,
     startSynthesis,
     synthesizeWithLocale,
@@ -80,6 +85,12 @@ export default function SynthesisPanel({ synthesis }: Props) {
             <option key={v.ShortName} value={v.ShortName}>{v.FriendlyName}</option>
           ))}
         </select>
+        <NarrationControls
+          rate={rate}
+          pitch={pitch}
+          onRateChange={setRate}
+          onPitchChange={setPitch}
+        />
         <button
           onClick={() => synthesizeWithLocale(idleLocale, idleVoice)}
           disabled={!idleVoice}
@@ -125,6 +136,12 @@ export default function SynthesisPanel({ synthesis }: Props) {
             />
           )
         })}
+        <NarrationControls
+          rate={rate}
+          pitch={pitch}
+          onRateChange={setRate}
+          onPitchChange={setPitch}
+        />
         <div className={styles.buttonRow}>
           <button onClick={() => startSynthesis()} className={styles.btn}>
             Start Synthesis

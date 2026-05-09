@@ -21,6 +21,10 @@ const baseSynthesis = {
   chapterAudios: {},
   progress: { done: 0, total: 0 },
   error: null,
+  rate: 0,
+  pitch: 0,
+  setRate: noop,
+  setPitch: noop,
   detect: noop,
   startSynthesis: noop,
   synthesizeWithLocale: noop,
@@ -78,4 +82,24 @@ test('shows error message in error phase', () => {
     error: 'Detection failed: timeout',
   }} />)
   expect(screen.getByText('Detection failed: timeout')).toBeInTheDocument()
+})
+
+test('renders NarrationControls speed and pitch sliders in idle phase', () => {
+  render(<SynthesisPanel synthesis={baseSynthesis} />)
+  expect(screen.getByRole('slider', { name: /speed/i })).toBeInTheDocument()
+  expect(screen.getByRole('slider', { name: /pitch/i })).toBeInTheDocument()
+})
+
+test('renders NarrationControls speed and pitch sliders in selecting phase', () => {
+  render(<SynthesisPanel synthesis={{
+    ...baseSynthesis,
+    phase: 'selecting',
+    chapterLocales: { 'ch-0': 'en-US' },
+    voicesByLocale: {
+      'en-US': [{ ShortName: 'en-US-AriaNeural', FriendlyName: 'Aria', Locale: 'en-US', Gender: 'Female' }],
+    },
+    selectedVoices: { 'en-US': 'en-US-AriaNeural' },
+  }} />)
+  expect(screen.getByRole('slider', { name: /speed/i })).toBeInTheDocument()
+  expect(screen.getByRole('slider', { name: /pitch/i })).toBeInTheDocument()
 })
