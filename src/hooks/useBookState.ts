@@ -36,7 +36,7 @@ export function useBookState(initialChapters: Chapter[]) {
       if (before.length === 0 || after.length === 0) return prev
 
       const newChapter: Chapter = {
-        id: `${id}-split-${Date.now()}`,
+        id: `${id}-split-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         title: original.title ? `${original.title} (Part 2)` : undefined,
         paragraphs: after,
         order: original.order + 1
