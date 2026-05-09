@@ -20,20 +20,22 @@ export default function Home() {
     if (typeof window === 'undefined') return 'light'
     return (localStorage.getItem('narrify-theme') as 'light' | 'dark') ?? 'light'
   })
-  const [chapters, setChapters] = useState<Chapter[]>([])
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   
+  const book = useBookState([])
+
   const handleChapters = (chs: Chapter[]) => {
     setErrorMsg(null)
-    setChapters(chs)
+    book.setChapters(chs)
+    book.selectAll()
   }
 
   const handleError = (msg: string) => {
     setErrorMsg(msg)
-    setChapters([])
+    book.setChapters([])
   }
 
-  const synthesis = useSynthesis(chapters)
+  const synthesis = useSynthesis(book.selectedChapters)
   const urlParsing = useUrlParsing(handleChapters, handleError)
 
   function toggleTheme() {
@@ -46,6 +48,7 @@ export default function Home() {
 
   const busy = synthesis.phase === 'synthesizing'
   const isUrlParsingActive = urlParsing.state.tag !== 'idle' && urlParsing.state.tag !== 'loading'
+  const hasChapters = book.chapters.length > 0
 
   return (
     <div className={styles.page}>
@@ -67,7 +70,7 @@ export default function Home() {
               disabled={busy} 
             />
           </div>
-          {chapters.length > 0 && (
+          {hasChapters && (
             <SynthesisPanel synthesis={synthesis} />
           )}
           <footer className={styles.versionFooter}>
@@ -88,24 +91,17 @@ export default function Home() {
             />
           ) : (
             <>
-              {chapters.length === 0 && !errorMsg && (
+              {!hasChapters && !errorMsg && (
                 <p className={styles.empty}>Upload a book to get started.</p>
               )}
               {errorMsg && <p className={styles.error}>{errorMsg}</p>}
-              {chapters.length > 0 && (
+              {hasChapters && (
                 <>
-                  <StatsBadge chapters={chapters} />
-                  <ChapterList chapters={chapters} chapterAudios={synthesis.chapterAudios} />
-                </>
-              )}
-            </>
-          )}
-        </main>
-      </div>
-    </div>
-  )
-}
-erAudios={synthesis.chapterAudios} 
+                  <StatsBadge chapters={book.chapters} />
+                  <ChapterList 
+                    chapters={book.chapters} 
+                    selectedIds={book.selectedIds}
+                    chapterAudios={synthesis.chapterAudios} 
                     onToggleSelection={book.toggleSelection}
                     onSelectRange={book.selectRange}
                     onSelectAll={book.selectAll}
