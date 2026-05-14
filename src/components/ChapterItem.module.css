@@ -278,3 +278,9 @@
 .pulse {
   animation: pulse 1.4s ease-in-out infinite;
 }
+
+@media (max-width: 768px) {
+  .header { padding: 14px 12px; }
+  .actionBtn { width: 44px; height: 44px; }
+  .playBtn { width: 44px; height: 44px; }
+}

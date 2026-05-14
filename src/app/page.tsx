@@ -22,6 +22,7 @@ export default function Home() {
   })
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [bookTitle, setBookTitle] = useState<string | undefined>()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   
   const book = useBookState([])
 
@@ -60,14 +61,35 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <nav className={styles.nav}>
+        <button
+          className={styles.hamburger}
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open menu"
+        >
+          <svg width="18" height="14" viewBox="0 0 18 14" fill="currentColor" aria-hidden="true">
+            <rect width="18" height="2" rx="1"/>
+            <rect y="6" width="18" height="2" rx="1"/>
+            <rect y="12" width="18" height="2" rx="1"/>
+          </svg>
+        </button>
         <span className={styles.logoWrap}>
           <span className={styles.logo}>Narrify</span>
         </span>
         <ThemeToggle theme={theme} onToggle={toggleTheme} />
       </nav>
 
+      {sidebarOpen && (
+        <div className={styles.backdrop} onClick={() => setSidebarOpen(false)} />
+      )}
       <div className={styles.panels}>
-        <aside className={styles.left}>
+        <aside className={`${styles.left}${sidebarOpen ? ` ${styles.open}` : ''}`}>
+          <button
+            className={styles.drawerClose}
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close menu"
+          >
+            ✕
+          </button>
           <div className={styles.section}>
             <span className={styles.label}>Book</span>
             <InputTabs 
