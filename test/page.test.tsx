@@ -81,8 +81,8 @@ test('shows UrlInputMain in right panel when parsing URL', async () => {
   fireEvent.click(screen.getByRole('button', { name: /^go$/i }))
 
   await waitFor(() => {
-    // Should show the "Page Preview" header which is part of UrlInputMain
-    expect(screen.getByText(/page preview/i)).toBeInTheDocument()
+    // Should show the hostname in the picker header
+    expect(screen.getAllByText('example.com').length).toBeGreaterThan(0)
     // The main area should have the iframe
     expect(screen.getByTitle(/element picker/i)).toBeInTheDocument()
   })
