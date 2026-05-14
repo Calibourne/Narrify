@@ -59,6 +59,33 @@
   color: var(--accent);
 }
 
+.urlPill {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: var(--surface-secondary, rgba(0,0,0,0.04));
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  height: 34px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.pillFavicon {
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.pillHost {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Main Area Styles */
 .iframeMain {
   display: flex;

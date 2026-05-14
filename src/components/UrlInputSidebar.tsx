@@ -25,14 +25,27 @@ export default function UrlInputSidebar({ state, setUrl, onGo, onDub, onCancel, 
   return (
     <div className={styles.wrap}>
       <div className={styles.row}>
-        <input
-          className={styles.urlInput}
-          placeholder="https://"
-          value={state.url}
-          onChange={(e) => setUrl(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && onGo()}
-          disabled={isBusy || isLocked}
-        />
+        {isLocked ? (
+          <div className={styles.urlPill} title={state.url}>
+            <img
+              className={styles.pillFavicon}
+              src={`https://www.google.com/s2/favicons?domain=${new URL(state.url).hostname}&sz=16`}
+              width={14}
+              height={14}
+              alt=""
+            />
+            <span className={styles.pillHost}>{new URL(state.url).hostname}</span>
+          </div>
+        ) : (
+          <input
+            className={styles.urlInput}
+            placeholder="https://"
+            value={state.url}
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && onGo()}
+            disabled={isBusy}
+          />
+        )}
         <button
           className={styles.goBtn}
           onClick={onGo}
