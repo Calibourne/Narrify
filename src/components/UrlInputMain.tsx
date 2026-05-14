@@ -43,11 +43,21 @@ export default function UrlInputMain({ state, setChecked, setPickerTexts, onLoad
   }, [state.tag, state.url, onLoadChecklist, setPickerTexts])
 
   if (state.tag === 'picker' && state.html) {
+    const hostname = new URL(state.url).hostname
     return (
       <div className={styles.iframeMain}>
         <div className={styles.mainHeader}>
-          <span>Page Preview</span>
-          <span>Click elements to select</span>
+          <div className={styles.headerUrl}>
+            <img
+              src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=16`}
+              width={14}
+              height={14}
+              alt=""
+              className={styles.pillFavicon}
+            />
+            <span className={styles.headerHostname}>{hostname}</span>
+          </div>
+          <span className={styles.pickerBadge}>Click elements to select</span>
         </div>
         <iframe
           className={styles.iframe}
